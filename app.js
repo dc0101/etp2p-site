@@ -247,6 +247,7 @@ function setView(nextView) {
     openSignIn();
     return;
   }
+  if (nextView === "orders") return displayView(nextView);
   requireAal2(() => displayView(nextView));
 }
 
@@ -254,7 +255,7 @@ function showMfaCodePrompt(client, factor, onVerified, title = "Verify authentic
   client.auth.mfa.challenge({ factorId: factor.id }).then(({ data, error }) => {
     if (error) throw error;
     $("modalTitle").textContent = title;
-    $("modalBody").innerHTML = '<p class="sec-note">Enter the current six-digit code from your authenticator app. Etp2p requires this check before orders or listing changes.</p><label class="label" for="mfaCode">Authenticator code</label><div class="entry"><input id="mfaCode" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" placeholder="000000"></div>';
+    $("modalBody").innerHTML = '<p class="sec-note">Enter the current six-digit code from your authenticator app. This extra check is required before posting ads or changing order status.</p><label class="label" for="mfaCode">Authenticator code</label><div class="entry"><input id="mfaCode" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" placeholder="000000"></div>';
     $("modalFoot").innerHTML = '<button class="btn primary" id="verifyMfa">Verify and continue</button>';
     $("verifyMfa").onclick = async () => {
       const code = $("mfaCode").value.trim();
@@ -286,7 +287,7 @@ async function startMfaEnrollment(onVerified) {
     if (error) throw error;
     const qr = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(data.totp.qr_code);
     $("modalTitle").textContent = "Secure your Etp2p account";
-    $("modalBody").innerHTML = '<p class="sec-note">Scan this QR code with an authenticator app, then enter its six-digit code. This extra step protects private order and listing changes.</p><div style="text-align:center"><img alt="Authenticator setup QR code" src="' + esc(qr) + '" style="width:190px;height:190px;max-width:100%;border:1px solid #e8eee9;border-radius:10px;padding:8px"><p class="hint">If you cannot scan it, enter this setup key manually:</p><code style="display:inline-block;word-break:break-all;padding:8px;background:#f6f8f6;border-radius:8px">' + esc(data.totp.secret) + '</code></div><label class="label" for="enrollCode">Authenticator code</label><div class="entry"><input id="enrollCode" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" placeholder="000000"></div>';
+    $("modalBody").innerHTML = '<p class="sec-note">Scan this QR code with an authenticator app, then enter its six-digit code. This extra step protects ad posting and order status changes. Creating an order only requires signing in.</p><div style="text-align:center"><img alt="Authenticator setup QR code" src="' + esc(qr) + '" style="width:190px;height:190px;max-width:100%;border:1px solid #e8eee9;border-radius:10px;padding:8px"><p class="hint">If you cannot scan it, enter this setup key manually:</p><code style="display:inline-block;word-break:break-all;padding:8px;background:#f6f8f6;border-radius:8px">' + esc(data.totp.secret) + '</code></div><label class="label" for="enrollCode">Authenticator code</label><div class="entry"><input id="enrollCode" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" placeholder="000000"></div>';
     $("modalFoot").innerHTML = '<button class="btn primary" id="confirmMfa">Enable authenticator</button>';
     $("confirmMfa").onclick = async () => {
       const code = $("enrollCode").value.trim();
@@ -342,11 +343,11 @@ function openSecurity() {
     const factor = (data.totp || []).find((item) => item.status === "verified");
     $("modalTitle").textContent = "Account security";
     if (!factor) {
-      $("modalBody").innerHTML = '<p class="sec-note">Authenticator verification is required before posting ads, viewing order records, or changing order status. Your authenticator app generates the codes; Etp2p does not store them.</p>';
+      $("modalBody").innerHTML = '<p class="sec-note">You can create and view orders after signing in. Authenticator verification is required before posting ads or changing order status. Your authenticator app generates the codes; Etp2p does not store them.</p>';
       $("modalFoot").innerHTML = '<button class="btn primary" id="setupMfa">Set up authenticator</button>';
       $("setupMfa").onclick = () => startMfaEnrollment(async () => notify("Your account is protected."));
     } else {
-      $("modalBody").innerHTML = '<div class="summary"><div><b>Authenticator enabled</b><br><span>Orders and listing changes require a fresh verified session.</span></div></div>';
+      $("modalBody").innerHTML = '<div class="summary"><div><b>Authenticator enabled</b><br><span>Required for posting ads and changing order status. Creating and viewing orders only requires sign-in.</span></div></div>';
       $("modalFoot").innerHTML = '<button class="btn outline" id="verifySecurity">Verify authenticator</button><div class="fine">If you lose access to your authenticator, use Supabase account recovery.</div>';
       $("verifySecurity").onclick = () => requireAal2(async () => { closeModal(); notify("Authenticator verified for this session."); });
     }
@@ -360,7 +361,7 @@ function authSetupMessage() {
 
 function openSignUp() {
   $("modalTitle").textContent = "Create your Etp2p account";
-  $("modalBody").innerHTML = '<p class="sec-note">Create an email account. Your password is handled by Supabase Auth.</p><label class="label" for="signupEmail">Email</label><div class="entry"><input id="signupEmail" type="email" autocomplete="email" required placeholder="name@example.com"></div><label class="label" for="signupPass">Password</label><div class="entry"><input id="signupPass" type="password" autocomplete="new-password" minlength="8" required placeholder="At least 8 characters"></div><label class="label" for="signupConfirm">Confirm password</label><div class="entry"><input id="signupConfirm" type="password" autocomplete="new-password" minlength="8" required placeholder="Enter the password again"></div><div class="hint">You will need an authenticator app before posting ads or creating orders.</div>';
+  $("modalBody").innerHTML = '<p class="sec-note">Create an email account. Your password is handled by Supabase Auth.</p><label class="label" for="signupEmail">Email</label><div class="entry"><input id="signupEmail" type="email" autocomplete="email" required placeholder="name@example.com"></div><label class="label" for="signupPass">Password</label><div class="entry"><input id="signupPass" type="password" autocomplete="new-password" minlength="8" required placeholder="At least 8 characters"></div><label class="label" for="signupConfirm">Confirm password</label><div class="entry"><input id="signupConfirm" type="password" autocomplete="new-password" minlength="8" required placeholder="Enter the password again"></div><div class="hint">Sign in to create orders. Authenticator setup is required only to post ads or change order status.</div>';
   $("modalFoot").innerHTML = '<button class="btn primary" id="createAccount">Create account</button><div class="fine">Already registered? <button class="tab" id="toSignIn" style="padding:0">Sign in</button></div>';
   $("toSignIn").onclick = openSignIn;
   $("createAccount").onclick = async () => {
@@ -377,7 +378,7 @@ function openSignUp() {
         updateAccount(data.user);
         closeModal();
         await loadAds(false);
-        notify("Account created. Set up your authenticator to trade.");
+        notify("Account created. You can create orders now; set up an authenticator to post ads or change order status.");
       } else {
         $("modalBody").innerHTML = '<div class="summary"><div><b>Check your email</b><br><span>Use the confirmation link to activate your account.</span></div></div>';
         $("modalFoot").innerHTML = '<button class="btn primary" data-close>Done</button>';
@@ -393,7 +394,7 @@ function openSignUp() {
 
 function openSignIn() {
   $("modalTitle").textContent = "Sign in to Etp2p";
-  $("modalBody").innerHTML = '<p class="sec-note">Sign in using your registered email. If you enabled authenticator security, Etp2p will ask for a code before private trading actions.</p><label class="label" for="loginName">Email</label><div class="entry"><input id="loginName" type="email" autocomplete="email" placeholder="name@example.com"></div><label class="label" for="loginPass">Password</label><div class="entry"><input id="loginPass" type="password" autocomplete="current-password" placeholder="Password"></div>';
+  $("modalBody").innerHTML = '<p class="sec-note">Sign in using your registered email. Orders are available after sign-in; authenticator verification is only requested for posting ads or changing order status.</p><label class="label" for="loginName">Email</label><div class="entry"><input id="loginName" type="email" autocomplete="email" placeholder="name@example.com"></div><label class="label" for="loginPass">Password</label><div class="entry"><input id="loginPass" type="password" autocomplete="current-password" placeholder="Password"></div>';
   $("modalFoot").innerHTML = '<button class="btn primary" id="realSignIn">Sign in</button><div class="fine">New to Etp2p? <button class="tab" id="toSignUp" style="padding:0">Create an account</button></div>';
   $("toSignUp").onclick = openSignUp;
   $("realSignIn").onclick = async () => {
@@ -407,7 +408,7 @@ function openSignIn() {
       updateAccount(data.user);
       closeModal();
       await loadAds(false);
-      notify("Signed in. Private data needs authenticator verification.");
+      notify("Signed in. You can create orders now.");
     } catch (error) {
       notify(error.message || "Sign-in failed. Check your details.");
       button.disabled = false; button.textContent = "Sign in";
@@ -419,7 +420,7 @@ function openSignIn() {
 function openAccount() {
   if (!authUser) return openSignIn();
   $("modalTitle").textContent = "Your account";
-  $("modalBody").innerHTML = '<div class="summary"><div><b>Signed in</b><br><span>' + esc(authUser.email || "") + '</span></div></div><p class="sec-note" style="margin-top:14px">Posting ads, reading private orders, and changing order status require authenticator verification.</p>';
+  $("modalBody").innerHTML = '<div class="summary"><div><b>Signed in</b><br><span>' + esc(authUser.email || "") + '</span></div></div><p class="sec-note" style="margin-top:14px">You can create and view orders after signing in. Authenticator verification is required to post ads or change order status.</p>';
   $("modalFoot").innerHTML = '<button class="btn outline" id="accountSecurity">Security options</button><button class="btn primary" id="signOut" style="margin-top:8px">Sign out</button>';
   $("accountSecurity").onclick = openSecurity;
   $("signOut").onclick = async () => {
@@ -492,11 +493,11 @@ function openAdForm() {
 function trade(offer) {
   if (offer.isOwn) return setView("ads");
   if (!authUser) {
-    notify("Sign in and enable authenticator security to create an order.");
+    notify("Sign in to create an order.");
     openSignIn();
     return;
   }
-  requireAal2(() => openTradeForm(offer));
+  openTradeForm(offer);
 }
 
 function openTradeForm(offer) {
@@ -506,7 +507,7 @@ function openTradeForm(offer) {
   const maximumCrypto = offer.max / offer.price;
   let requestKey = globalThis.crypto.randomUUID();
   $("modalTitle").textContent = (isBuy ? "Buy " : "Sell ") + coin.value;
-  $("modalBody").innerHTML = '<div class="summary"><div><b>' + esc(offer.name) + '</b><br><span>Supabase marketplace offer</span></div><div style="text-align:right"><b>' + money(offer.price, currency) + '</b><br><span>per ' + esc(coin.value) + '</span></div></div><label class="label" for="tradeAmount">' + (isBuy ? "Amount to pay" : "USDT to sell") + '</label><div class="entry"><input id="tradeAmount" type="number" min="0" step="0.00000001" placeholder="Enter amount"><span>' + (isBuy ? (currency === "ETB" ? "Birr" : "USD") : coin.value) + '</span></div><div class="hint">Offer limits: ' + money(offer.min, currency) + ' – ' + money(offer.max, currency) + ' · Available: ' + offer.stock.toLocaleString() + ' USDT</div><label class="label" for="tradePayment">Payment method</label><select id="tradePayment" class="method-select">' + offer.pay.map((method) => '<option>' + esc(method) + '</option>').join("") + '</select><div class="lines"><div class="line"><span>You receive</span><b id="estimate">— USDT</b></div><div class="line"><span>Order storage</span><b style="color:#28774a">Supabase</b></div></div><p class="sec-note" style="margin-top:12px">This saves an order record and reserves the listed amount. It does not move crypto or verify a bank transfer. Arrange payment safely outside Etp2p.</p>';
+  $("modalBody").innerHTML = '<div class="summary"><div><b>' + esc(offer.name) + '</b><br><span>Supabase marketplace offer</span></div><div style="text-align:right"><b>' + money(offer.price, currency) + '</b><br><span>per ' + esc(coin.value) + '</span></div></div><label class="label" for="tradeAmount">' + (isBuy ? "Amount to pay" : "USDT to sell") + '</label><div class="entry"><input id="tradeAmount" type="number" min="0" step="0.00000001" placeholder="Enter amount"><span>' + (isBuy ? (currency === "ETB" ? "Birr" : "USD") : coin.value) + '</span></div><div class="hint">Offer limits: ' + money(offer.min, currency) + ' – ' + money(offer.max, currency) + ' · Available: ' + offer.stock.toLocaleString() + ' USDT</div><label class="label" for="tradePayment">Payment method</label><select id="tradePayment" class="method-select">' + offer.pay.map((method) => '<option>' + esc(method) + '</option>').join("") + '</select><div class="lines"><div class="line"><span>You receive</span><b id="estimate">— USDT</b></div><div class="line"><span>Order storage</span><b style="color:#28774a">Supabase</b></div></div><p class="sec-note" style="margin-top:12px">Creating an order only needs sign-in. Authenticator verification is still required to post ads or change order status. This saves an order record and reserves the listed amount; it does not move crypto or verify a bank transfer. Arrange payment safely outside Etp2p.</p>';
   $("modalFoot").innerHTML = '<button class="btn primary" id="continue">Create order record</button><div class="fine">No crypto custody, bank integration, or escrow is connected.</div>';
   $("tradeAmount").oninput = () => {
     const amount = Number($("tradeAmount").value || 0);
