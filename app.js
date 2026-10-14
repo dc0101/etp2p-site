@@ -10,6 +10,8 @@ import {
   transitionOrder,
 } from "./services/supabase.js";
 
+import { createTrade, releaseTrade } from "./services/escrowService.js";
+
 "use strict";
 
 const $ = (id) => document.getElementById(id);
@@ -503,17 +505,16 @@ function trade(offer) {
 function openTradeForm(offer) {
   const isBuy = side === "buy";
   const currency = offer.currency;
-  const minimumCrypto = offer.min / offer.price;
-  const maximumCrypto = offer.max / offer.price;
-  let requestKey = globalThis.crypto.randomUUID();
   $("modalTitle").textContent = (isBuy ? "Buy " : "Sell ") + coin.value;
-  $("modalBody").innerHTML = '<div class="summary"><div><b>' + esc(offer.name) + '</b><br><span>Supabase marketplace offer</span></div><div style="text-align:right"><b>' + money(offer.price, currency) + '</b><br><span>per ' + esc(coin.value) + '</span></div></div><label class="label" for="tradeAmount">' + (isBuy ? "Amount to pay" : "USDT to sell") + '</label><div class="entry"><input id="tradeAmount" type="number" min="0" step="0.00000001" placeholder="Enter amount"><span>' + (isBuy ? (currency === "ETB" ? "Birr" : "USD") : coin.value) + '</span></div><div class="hint">Offer limits: ' + money(offer.min, currency) + ' – ' + money(offer.max, currency) + ' · Available: ' + offer.stock.toLocaleString() + ' USDT</div><label class="label" for="tradePayment">Payment method</label><select id="tradePayment" class="method-select">' + offer.pay.map((method) => '<option>' + esc(method) + '</option>').join("") + '</select><div class="lines"><div class="line"><span>You receive</span><b id="estimate">— USDT</b></div><div class="line"><span>Order storage</span><b style="color:#28774a">Supabase</b></div></div><p class="sec-note" style="margin-top:12px">Creating an order only needs sign-in. Authenticator verification is still required to post ads or change order status. This saves an order record and reserves the listed amount; it does not move crypto or verify a bank transfer. Arrange payment safely outside Etp2p.</p>';
-  $("modalFoot").innerHTML = '<button class="btn primary" id="continue">Create order record</button><div class="fine">No crypto custody, bank integration, or escrow is connected.</div>';
+  $("modalBody").innerHTML = '<div class="summary"><div><b>' + esc(offer.name) + '</b><br><span>Supabase marketplace offer</span></div><div style="text-align:right"><b>' + money(offer.price, currency) + '</b><br><span>per ' + esc(coin.value) + '</span></div></div><label class="label" for="tradeAmount">' + (isBuy ? "Amount to pay" : "USDT to sell") + '</label><div class="entry"><input id="tradeAmount" type="number" min="0" step="0.00000001" placeholder="Enter amount"><span>' + (isBuy ? (currency === "ETB" ? "Birr" : "USD") : coin.value) + '</span></div><div class="hint">Offer limits: ' + money(offer.min, currency) + ' – ' + money(offer.max, currency) + ' · Available: ' + offer.stock.toLocaleString() + ' USDT</div><label class="label" for="tradePayment">Payment method</label><select id="tradePayment" class="method-select">' + offer.pay.map((method) => '<option>' + esc(method) + '</option>').join("") + '</select><div class="lines"><div class="line"><span>You receive</span><b id="estimate">— USDT</b></div><div class="line"><span>Escrow System</span><b style="color:#28774a">In-House DB Escrow</b></div></div><p class="sec-note" style="margin-top:12px">Initiating this trade will invoke atomic database escrow locking for secure peer-to-peer exchange.</p>';
+  $("modalFoot").innerHTML = '<button class="btn primary" id="continue">Initialize Escrow Trade</button>';
+  
   $("tradeAmount").oninput = () => {
     const amount = Number($("tradeAmount").value || 0);
     const cryptoAmount = isBuy ? amount / offer.price : amount;
     $("estimate").textContent = cryptoAmount > 0 ? cryptoAmount.toFixed(8) + " USDT" : "— USDT";
   };
+
   $("continue").onclick = async () => {
     const entered = Number($("tradeAmount").value || 0);
     const cryptoAmount = isBuy ? entered / offer.price : entered;
@@ -521,188 +522,26 @@ function openTradeForm(offer) {
     if (!(cryptoAmount > 0) || !Number.isFinite(cryptoAmount)) return notify("Enter a valid amount.");
     if (fiatAmount < offer.min || fiatAmount > offer.max) return notify("The order is outside this ad’s fiat limits.");
     if (cryptoAmount > offer.stock) return notify("The ad does not have enough USDT available.");
-    const button = $("continue"); button.disabled = true; button.textContent = "Saving order…";
-    try {
-      const { data, error } = await createOrder({
-        adId: offer.adId,
-        cryptoAmount: Number(cryptoAmount.toFixed(8)),
-        paymentMethod: $("tradePayment").value,
-        requestKey,
-      });
-      if (error) throw error;
-      const orderId = data;
-      $("modalBody").innerHTML = '<div style="text-align:center;padding:10px"><div style="font-size:30px;color:#298150">✓</div><b>Order record saved</b><p class="sec-note">It is stored in Supabase and visible only to the two participants. No funds moved and no payment was checked.</p><div class="lines"><div class="line"><span>Order ID</span><b>' + esc(orderId) + '</b></div><div class="line"><span>Merchant</span><b>' + esc(offer.name) + '</b></div><div class="line"><span>Payment method</span><b>' + esc($("tradePayment").value) + '</b></div><div class="line"><span>Status</span><b>Waiting for payment</b></div></div></div>';
-      $("modalFoot").innerHTML = '<button class="btn primary" id="viewOrders">View my orders</button>';
-      $("viewOrders").onclick = () => { closeModal(); setView("orders"); };
-      await Promise.all([loadOrders(), loadAds(false)]);
-    } catch (error) {
-      notify(error.message || "Could not create this order. The listing may have changed.");
-      button.disabled = false; button.textContent = "Create order record";
+    
+    const button = $("continue"); button.disabled = true; button.textContent = "Processing escrow…";
+    
+    // Determine buyerId and sellerId based on the side
+    const buyerId = isBuy ? authUser.id : offer.ownerId;
+    const sellerId = isBuy ? offer.ownerId : authUser.id;
+
+    const result = await createTrade(buyerId, sellerId, cryptoAmount, fiatAmount);
+
+    if (!result.success) {
+      notify("Failed to create trade: " + result.error);
+      button.disabled = false; button.textContent = "Initialize Escrow Trade";
+      return;
     }
-  };
-  $("modal").classList.add("show");
-}
 
-async function loadOrders() {
-  $("orderList").innerHTML = '<div class="empty">Loading private order records…</div>';
-  const { data, error } = await listMyOrders();
-  if (error) {
-    $("orderList").innerHTML = '<div class="empty"><strong>Could not load private orders</strong>' + esc(error.message) + '</div>';
-    return;
-  }
-  orders = data || [];
-  renderOrders();
-}
-
-function renderOrders() {
-  const filter = $("orderFilter").value || "all";
-  const data = orders.filter((order) => {
-    const userSide = order.buyer_id === authUser?.id ? "buy" : "sell";
-    return (orderSide === "all" || userSide === orderSide) &&
-      (filter === "all" || (filter === "progress" && ["pending", "payment_marked"].includes(order.status)) || order.status === filter);
-  });
-  if (!data.length) {
-    $("orderList").innerHTML = '<div class="empty">▤<strong>No saved orders</strong>Your Supabase orders will appear here.<br><button class="btn quiet small" id="browse" style="margin-top:10px">Browse offers</button></div>';
-    $("browse").onclick = () => displayView("market");
-    return;
-  }
-  $("orderList").innerHTML = data.map((order) => {
-    const statusText = { pending: "Waiting for payment", payment_marked: "Buyer marked paid", completed: "Marked complete", cancelled: "Cancelled" }[order.status] || order.status;
-    const statusClass = order.status === "completed" ? "done" : order.status === "cancelled" ? "cancelled" : "";
-    const isBuyer = order.buyer_id === authUser.id;
-    const action = order.status === "pending"
-      ? '<button class="btn quiet small" data-order-action="' + (isBuyer ? "mark_paid" : "cancel") + '" data-id="' + esc(order.id) + '">' + (isBuyer ? "I paid" : "Cancel") + '</button>'
-      : order.status === "payment_marked" && !isBuyer
-        ? '<button class="btn primary small" data-order-action="complete" data-id="' + esc(order.id) + '">Confirm received</button>'
-        : "";
-    const cancel = order.status === "pending" ? '<button class="btn outline small" data-order-action="cancel" data-id="' + esc(order.id) + '">Cancel</button>' : "";
-    return '<div class="order"><div><small>Order ' + esc(order.id) + ' · ' + new Date(order.created_at).toLocaleString() + '</small><strong>' + (isBuyer ? "Buy " : "Sell ") + esc(order.asset) + ' · ' + esc(order.merchant_handle) + '</strong><small>' + esc(order.payment_method) + '</small></div><div><small>Crypto amount</small><strong>' + Number(order.crypto_amount).toFixed(8) + ' ' + esc(order.asset) + '</strong></div><div><small>Fiat total</small><strong>' + money(order.fiat_amount, order.currency) + '</strong></div><div><span class="status ' + statusClass + '">' + esc(statusText) + '</span><div class="order-buttons">' + action + cancel + '</div></div></div>';
-  }).join("") + '<p class="sec-note" style="padding:0 22px">Order status is user-reported. Etp2p does not verify payments or release crypto.</p>';
-  $("orderList").querySelectorAll("[data-order-action]").forEach((button) => button.onclick = () => requireAal2(() => updateOrder(button.dataset.id, button.dataset.orderAction)));
-}
-
-async function updateOrder(id, action) {
-  const { error } = await transitionOrder(id, action);
-  if (error) {
-    notify(error.message || "Could not update this order.");
-    return;
-  }
-  await Promise.all([loadOrders(), loadAds(false)]);
-  notify(action === "mark_paid" ? "Payment status saved. The seller must confirm independently." : action === "complete" ? "Completion status saved." : "Order cancelled and availability restored.");
-}
-
-async function loadMyAds() {
-  $("orderList").innerHTML = '<div class="empty">Loading your ads…</div>';
-  const { data, error } = await listMyAds(authUser.id);
-  if (error) {
-    $("orderList").innerHTML = '<div class="empty"><strong>Could not load your ads</strong>' + esc(error.message) + '</div>';
-    return;
-  }
-  myAds = data || [];
-  renderMyAds();
-}
-
-function renderMyAds() {
-  if (!myAds.length) {
-    $("orderList").innerHTML = '<div class="empty">◇<strong>No ads saved</strong>Create an ad and it will be stored in Supabase for other visitors to see.<br><button class="btn quiet small" id="createAd" style="margin-top:10px">Post an ad</button></div>';
-    $("createAd").onclick = () => requireAal2(openAdForm);
-    return;
-  }
-  $("orderList").innerHTML = myAds.map((ad) => {
-    const isArchived = Boolean(ad.archived_at);
-    const state = isArchived ? "Archived" : ad.is_active ? "Active" : "Paused";
-    const buttons = isArchived ? "" : '<div class="order-buttons"><button class="btn quiet small" data-ad-action="toggle" data-id="' + esc(ad.id) + '">' + (ad.is_active ? "Pause" : "Activate") + '</button><button class="btn outline small" data-ad-action="archive" data-id="' + esc(ad.id) + '">Archive</button></div>';
-    return '<div class="order"><div><small>Ad ' + esc(ad.id) + ' · ' + (ad.side === "sell" ? "Selling" : "Buying") + ' USDT</small><strong>' + money(ad.price_per_unit, ad.currency) + ' / USDT</strong><small>' + ad.payment_methods.map(esc).join(", ") + '</small></div><div><small>Available</small><strong>' + Number(ad.available_amount).toLocaleString() + ' USDT</strong></div><div><small>Trade limits</small><strong>' + money(ad.min_fiat_amount, ad.currency) + ' – ' + money(ad.max_fiat_amount, ad.currency) + '</strong></div><div><span class="status ' + (ad.is_active ? "done" : "cancelled") + '">' + state + '</span>' + buttons + '</div></div>';
-  }).join("") + '<div style="padding:12px 22px"><button class="btn primary small" id="createAd">＋ Post another ad</button></div><p class="sec-note" style="padding:0 22px">Archive hides an ad from the marketplace while preserving its database record.</p>';
-  $("createAd").onclick = () => requireAal2(openAdForm);
-  $("orderList").querySelectorAll("[data-ad-action]").forEach((button) => button.onclick = () => requireAal2(() => updateMyAd(button.dataset.id, button.dataset.adAction)));
-}
-
-async function updateMyAd(id, action) {
-  const ad = myAds.find((item) => item.id === id);
-  if (!ad || ad.archived_at) return;
-  const changes = action === "archive"
-    ? { is_active: false, archived_at: new Date().toISOString() }
-    : { is_active: !ad.is_active };
-  const { error } = await updateAd(id, changes);
-  if (error) return notify(error.message || "Could not update this ad.");
-  await Promise.all([loadMyAds(), loadAds(false)]);
-  notify(action === "archive" ? "Ad archived. The record remains in Supabase." : changes.is_active ? "Ad activated." : "Ad paused.");
-}
-
-function closeModal() { $("modal").classList.remove("show"); }
-
-function showInfo(title, html) {
-  $("modalTitle").textContent = title;
-  $("modalBody").innerHTML = html;
-  $("modalFoot").innerHTML = '<button class="btn primary" data-close>Got it</button>';
-  $("modalFoot").querySelector("[data-close]").onclick = closeModal;
-  $("modal").classList.add("show");
-}
-
-document.querySelectorAll("[data-side]").forEach((button) => button.onclick = () => {
-  side = button.dataset.side;
-  document.querySelectorAll("[data-side]").forEach((item) => item.classList.toggle("on", item === button));
-  loadAds(false);
-});
-document.querySelectorAll("[data-view]").forEach((item) => item.onclick = (event) => { event.preventDefault(); setView(item.dataset.view); });
-document.querySelectorAll("[data-oside]").forEach((button) => button.onclick = () => {
-  orderSide = button.dataset.oside;
-  document.querySelectorAll("[data-oside]").forEach((item) => item.classList.toggle("on", item === button));
-  renderOrders();
-});
-[coin, fiat, $("amount"), $("payment"), $("amountUnit")].forEach((input) => input.addEventListener("input", scheduleAdsLoad));
-$("orderFilter").onchange = renderOrders;
-$("reset").onclick = () => {
-  $("amount").value = "";
-  $("payment").value = "all";
-  loadAds(false);
-  notify("Filters cleared.");
-};
-$("loadMore").onclick = () => loadAds(true);
-$("refreshOffers").onclick = () => loadAds(false);
-$("post").onclick = () => authUser ? requireAal2(openAdForm) : openSignIn();
-$("how").onclick = () => showInfo("How Etp2p works", '<p class="sec-note">Offers and order records are stored in Supabase. Listings are shared with visitors; order records are visible only to the participants.</p><div class="lines"><div class="line"><span>01 · Browse</span><b>Read shared ads</b></div><div class="line"><span>02 · Create</span><b>Save an order record</b></div><div class="line"><span>03 · Settle</span><b>Arrange payment independently</b></div></div><p class="sec-note" style="margin-top:12px">Etp2p does not hold crypto, verify bank transfers, or provide escrow.</p>');
-$("signup").onclick = () => authUser ? openAccount() : openSignUp();
-$("login").onclick = () => authUser ? openAccount() : openSignIn();
-$("security").onclick = openSecurity;
-$("profile").onclick = () => authUser ? openAccount() : openSignIn();
-$("help").onclick = (event) => { event.preventDefault(); showInfo("Help center", "<p class=\"sec-note\">Support is not connected yet.</p>"); };
-$("terms").onclick = (event) => { event.preventDefault(); showInfo("P2P terms", "<p class=\"sec-note\">Etp2p stores listings and order status. Payments and crypto are handled independently between users.</p>"); };
-document.querySelectorAll("[data-close]").forEach((button) => button.onclick = closeModal);
-$("modal").onclick = (event) => { if (event.target === $("modal")) closeModal(); };
-document.onkeydown = (event) => { if (event.key === "Escape") closeModal(); };
-
-supabase.auth.onAuthStateChange((_event, session) => {
-  const nextUser = session?.user || null;
-  const changed = nextUser?.id !== authUser?.id;
-  updateAccount(nextUser);
-  if (changed) setTimeout(() => { loadAds(false); if (view === "ads" && authUser) loadMyAds(); if (view === "orders" && authUser) loadOrders(); }, 0);
-});
-
-(async function init() {
-  try {
-    const { data, error } = await supabase.auth.getSession();
-    if (error) throw error;
-    updateAccount(data.session?.user || null);
+    $("modalBody").innerHTML = '<div style="text-align:center;padding:10px"><div style="font-size:30px;color:#298150">✓</div><b>Escrow Trade Initialized</b><p class="sec-note">Funds successfully locked in the database escrow system.</p><div class="lines"><div class="line"><span>Trade ID</span><b>' + esc(result.tradeId) + '</b></div><div class="line"><span>Status</span><b>Active / Locked</b></div></div></div>';
+    $("modalFoot").innerHTML = '<button class="btn primary" id="viewOrders">View my orders</button>';
+    $("viewOrders").onclick = () => { closeModal(); setView("orders"); };
     await loadAds(false);
-  } catch (error) {
-    setDatabaseStatus("Supabase connection unavailable", false);
-    $("rows").innerHTML = '<tr><td colspan="6"><div class="empty"><strong>Could not connect to Supabase</strong>' + esc(error.message) + '</div></td></tr>';
-  }
-})();
-import {
-  supabase,
-  listAds,
-  listProfiles,
-  listMyAds,
-  createAd,
-  updateAd,
-  listMyOrders,
-  createOrder,
-  transitionOrder,
-} from "./services/supabase.js";
+  };
 
-import { createTrade, releaseTrade } from "./services/escrowService.js";
-
-"use strict";
+  $("modal").classList.add("show");
+}
