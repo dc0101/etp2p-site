@@ -691,3 +691,18 @@ supabase.auth.onAuthStateChange((_event, session) => {
     $("rows").innerHTML = '<tr><td colspan="6"><div class="empty"><strong>Could not connect to Supabase</strong>' + esc(error.message) + '</div></td></tr>';
   }
 })();
+import {
+  supabase,
+  listAds,
+  listProfiles,
+  listMyAds,
+  createAd,
+  updateAd,
+  listMyOrders,
+  createOrder,
+  transitionOrder,
+} from "./services/supabase.js";
+
+import { createTrade, releaseTrade } from "./services/escrowService.js";
+
+"use strict";
