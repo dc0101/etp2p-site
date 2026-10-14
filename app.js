@@ -366,6 +366,30 @@ function openSignUp() {
   $("modalBody").innerHTML = '<p class="sec-note">Sign up to create your account.</p>';
 }
 
+function trade(offer) {
+  if (!authUser) {
+    notify("Please sign in to start a trade.");
+    openSignIn();
+    return;
+  }
+
+  const inputAmount = prompt(`Enter amount of ${coin.value} you want to trade (Stock: ${offer.stock}):`);
+  const cryptoAmount = Number(inputAmount);
+
+  if (!cryptoAmount || cryptoAmount <= 0) {
+    notify("Invalid amount entered.");
+    return;
+  }
+
+  if (cryptoAmount > offer.stock) {
+    notify("Amount exceeds available stock for this offer.");
+    return;
+  }
+
+  const fiatAmount = cryptoAmount * offer.price;
+  handleInitiateTrade(offer, cryptoAmount, fiatAmount);
+}
+
 async function handleInitiateTrade(ad, cryptoAmount, fiatAmount) {
   const { data: { user } } = await supabase.auth.getUser();
   const buyerId = user?.id; 
