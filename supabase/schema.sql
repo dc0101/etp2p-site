@@ -280,13 +280,12 @@ create policy ads_mfa_owner_update
   );
 
 drop policy if exists orders_mfa_participant_read on public.p2p_orders;
-create policy orders_mfa_participant_read
+drop policy if exists orders_participant_read on public.p2p_orders;
+create policy orders_participant_read
   on public.p2p_orders for select to authenticated
   using (
-    (buyer_id = (select auth.uid()) or seller_id = (select auth.uid()))
-    and (select auth.jwt() ->> 'aal') = 'aal2'
+    buyer_id = (select auth.uid()) or seller_id = (select auth.uid())
   );
-
 -- No DELETE, direct order INSERT, or direct order UPDATE policy is created.
 revoke all on public.profiles, public.p2p_ads, public.p2p_orders, public.audit_log from public, anon, authenticated;
 grant select on public.profiles, public.p2p_ads to anon, authenticated;
@@ -317,9 +316,6 @@ declare
   v_handle text;
 begin
   if v_user is null then raise exception 'Sign in is required.' using errcode = '42501'; end if;
-  if coalesce(auth.jwt() ->> 'aal', 'aal1') <> 'aal2' then
-    raise exception 'Authenticator verification is required.' using errcode = '42501';
-  end if;
   if p_request_key is null or p_ad_id is null then raise exception 'Order request is incomplete.'; end if;
   if p_crypto_amount is null or p_crypto_amount <= 0 then
     raise exception 'Enter a positive USDT amount.';
