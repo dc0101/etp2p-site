@@ -364,3 +364,45 @@ function authSetupMessage() {
 function openSignUp() {
   $("modalTitle").textContent = "Create your Etp2p account";
   $("modalBody").innerHTML = '<p class="sec-note">
+async function handleInitiateTrade(ad, cryptoAmount, fiatAmount) {
+  const { data: { user } } = await supabase.auth.getUser();
+  const buyerId = user?.id; 
+  const sellerId = ad.owner_id || ad.user_id;
+
+  if (!buyerId) {
+    notify("Please sign in to initiate a trade.");
+    openSignIn();
+    return;
+  }
+
+  const result = await createTrade(buyerId, sellerId, cryptoAmount, fiatAmount);
+
+  if (result.success) {
+    console.log("Trade created successfully:", result.tradeId);
+    window.location.href = `/trade.html?id=${result.tradeId}`;
+  } else {
+    notify(`Failed to create trade: ${result.error}`);
+  }
+}
+
+async function handleReleaseTrade(tradeId) {
+  const { data: { user } } = await supabase.auth.getUser();
+  const sellerId = user?.id;
+
+  if (!confirm("Are you sure you want to release the escrowed funds to the buyer?")) {
+    return;
+  }
+
+  const result = await releaseTrade(tradeId, sellerId);
+
+  if (result.success) {
+    notify("Trade successfully completed and funds released!");
+    location.reload();
+  } else {
+    notify(`Error releasing trade: ${result.error}`);
+  }
+}
+
+// Expose globally for HTML event handlers
+window.handleReleaseTrade = handleReleaseTrade;
+window.handleInitiateTrade = handleInitiateTrade;
