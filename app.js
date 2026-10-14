@@ -363,7 +363,9 @@ function authSetupMessage() {
 
 function openSignUp() {
   $("modalTitle").textContent = "Create your Etp2p account";
-  $("modalBody").innerHTML = '<p class="sec-note">
+  $("modalBody").innerHTML = '<p class="sec-note">Sign up to create your account.</p>';
+}
+
 async function handleInitiateTrade(ad, cryptoAmount, fiatAmount) {
   const { data: { user } } = await supabase.auth.getUser();
   const buyerId = user?.id; 
