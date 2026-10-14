@@ -1,38 +1,78 @@
-import { createClient } from '@supabase/supabase-js'
+import { supabase } from "./supabase.js";
 
-const supabase = createClient(
-  'https://gguiuhwbyjjaomfblpot.supabase.co',
-  'sb_publishable_XsXhQ_lPoEjo4KTTESpEDw_spJZPHlN'
-)
+/**
+ * Creates a new escrow trade record in the database.
+ * @param {string} buyerId 
+ * @param {string} sellerId 
+ * @param {number} cryptoAmount 
+ * @param {number} fiatAmount 
+ * @returns {Promise<{success: boolean, tradeId?: string, error?: string}>}
+ */
+export async function createTrade(buyerId, sellerId, cryptoAmount, fiatAmount) {
+  try {
+    const { data, error } = await supabase
+      .from("trades")
+      .insert([
+        {
+          buyer_id: buyerId,
+          seller_id: sellerId,
+          crypto_amount: cryptoAmount,
+          fiat_amount: fiatAmount,
+          status: "active",
+          created_at: new Date().toISOString(),
+        },
+      ])
+      .select("id")
+      .single();
 
-// 1. Initiate a trade and lock the seller's funds
-export async function createTrade(buyerId, sellerId, assetAmount, fiatAmount) {
-  const { data, error } = await supabase.rpc('create_trade', {
-    p_buyer_id: buyerId,
-    p_seller_id: sellerId,
-    p_asset_amount: assetAmount,
-    p_fiat_amount: fiatAmount
-  })
+    if (error) throw error;
 
-  if (error) {
-    console.error('Error creating trade:', error.message)
-    return { success: false, error: error.message }
+    return { success: true, tradeId: data.id };
+  } catch (error) {
+    return { success: false, error: error.message };
   }
-
-  return { success: true, tradeId: data }
 }
 
-// 2. Release trade funds when the seller confirms payment
+/**
+ * Releases an escrow trade, transferring funds from the seller to the buyer.
+ * @param {string} tradeId 
+ * @param {string} sellerId 
+ * @returns {Promise<{success: boolean, error?: string}>}
+ */
 export async function releaseTrade(tradeId, sellerId) {
-  const { error } = await supabase.rpc('release_trade', {
-    p_trade_id: tradeId,
-    p_seller_id: sellerId
-  })
+  try {
+    // Verify trade exists and is currently active/locked
+    const { data: trade, error: fetchError } = await supabase
+      .from("trades")
+      .select("*")
+      .eq("id", tradeId)
+      .single();
 
-  if (error) {
-    console.error('Error releasing trade:', error.message)
-    return { success: false, error: error.message }
+    if (fetchError || !trade) {
+      throw new Error("Trade not found.");
+    }
+
+    if (trade.seller_id !== sellerId) {
+      throw new Error("Unauthorized: Only the designated seller can release this trade.");
+    }
+
+    if (trade.status !== "active") {
+      throw new Error(`Trade cannot be released because its status is '${trade.status}'.`);
+    }
+
+    // Update trade status to released / completed
+    const { error: updateError } = await supabase
+      .from("trades")
+      .update({
+        status: "released",
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", tradeId);
+
+    if (updateError) throw updateError;
+
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error.message };
   }
-
-  return { success: true }
 }
