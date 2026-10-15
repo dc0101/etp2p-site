@@ -2,12 +2,6 @@ import {
   supabase,
   listAds,
   listProfiles,
-  listMyAds,
-  createAd,
-  updateAd,
-  listMyOrders,
-  createOrder,
-  transitionOrder,
 } from "./services/supabase.js";
 
 "use strict";
@@ -18,9 +12,6 @@ const AUTH_REDIRECT = "https://etp2p-site.onrender.com/";
 
 let authUser = null;
 let offers = [];
-let myAds = [];
-let orders = [];
-let totalOffers = 0;
 let adOffset = 0;
 let canLoadMore = false;
 let loadingAds = false;
@@ -432,9 +423,6 @@ function updateAccount(user) {
   if ($("signup")) $("signup").textContent = signedIn ? "Profile" : "Sign up";
   if ($("profile")) $("profile").textContent = (authUser?.email || "A").slice(0, 1).toUpperCase();
   if (previousUserId && previousUserId !== authUser?.id) {
-    myAds = [];
-    orders = [];
-    if ($("orderList")) $("orderList").innerHTML = "";
     displayView("market");
   }
 }
@@ -657,41 +645,28 @@ async function handleInitiateTrade(ad, cryptoAmount, fiatAmount) {
   }
 }
 
-async function handleReleaseTrade(tradeId) {
-  const { data: { user } } = await supabase.auth.getUser();
-  const sellerId = user?.id;
-
-  if (!confirm("Are you sure you want to release the escrowed funds to the buyer?")) {
-    return;
-  }
-
-  const result = await releaseTrade(tradeId, sellerId);
-
-  if (result.success) {
-    notify("Trade successfully completed and funds released!");
-    location.reload();
-  } else {
-    notify(`Error releasing trade: ${result.error}`);
-  }
-}
-
-window.handleReleaseTrade = handleReleaseTrade;
 window.handleInitiateTrade = handleInitiateTrade;
 
 document.addEventListener("DOMContentLoaded", () => {
   initTheme();
 
+  // Safely inject or hook up theme toggle button into header
   let themeBtn = $("themeToggleBtn");
   if (!themeBtn) {
-    const refEl = $("security") || $("signup") \vert{}\vert{} $("login");
-    if (refEl && refEl.parentNode) {
-      themeBtn = document.createElement("button");
-      themeBtn.id = "themeToggleBtn";
-      themeBtn.className = "btn small outline";
-      themeBtn.style.marginRight = "8px";
+    themeBtn = document.createElement("button");
+    themeBtn.id = "themeToggleBtn";
+    themeBtn.className = "btn small outline";
+    themeBtn.style.marginRight = "8px";
+    
+    // Find header button area
+    const refEl = $("security") || $("signup") \vert{}\vert{} $("login") || document.querySelector("header") || document.body;
+    if (refEl && refEl.firstChild) {
       refEl.parentNode.insertBefore(themeBtn, refEl);
+    } else {
+      document.body.appendChild(themeBtn);
     }
   }
+  
   if (themeBtn) {
     themeBtn.textContent = document.body.classList.contains("dark-mode") ? "☀️ Light" : "🌙 Dark";
     themeBtn.onclick = () => {
