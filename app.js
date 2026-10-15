@@ -681,19 +681,23 @@ window.handleInitiateTrade = handleInitiateTrade;
 document.addEventListener("DOMContentLoaded", () => {
   initTheme();
 
-  // Dynamically inject theme toggle button beside profile/account button in header if present
-  const profileBtn = $("profile") || $("signup") \vert{}\vert{} $("login");
-  if (profileBtn && profileBtn.parentNode && !$("headerThemeBtn")) {
-    const themeBtn = document.createElement("button");
-    themeBtn.id = "headerThemeBtn";
-    themeBtn.className = "btn small outline";
-    themeBtn.style.marginRight = "8px";
+  let themeBtn = $("themeToggleBtn");
+  if (!themeBtn) {
+    const refEl = $("security") || $("signup") \vert{}\vert{} $("login");
+    if (refEl && refEl.parentNode) {
+      themeBtn = document.createElement("button");
+      themeBtn.id = "themeToggleBtn";
+      themeBtn.className = "btn small outline";
+      themeBtn.style.marginRight = "8px";
+      refEl.parentNode.insertBefore(themeBtn, refEl);
+    }
+  }
+  if (themeBtn) {
     themeBtn.textContent = document.body.classList.contains("dark-mode") ? "☀️ Light" : "🌙 Dark";
     themeBtn.onclick = () => {
       toggleDarkMode();
       themeBtn.textContent = document.body.classList.contains("dark-mode") ? "☀️ Light" : "🌙 Dark";
     };
-    profileBtn.parentNode.insertBefore(themeBtn, profileBtn);
   }
 
   supabase.auth.getSession().then(({ data: { session } }) => {
