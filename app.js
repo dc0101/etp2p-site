@@ -658,7 +658,7 @@ document.addEventListener("DOMContentLoaded", () => {
     themeBtn.className = "btn small outline";
     themeBtn.style.marginRight = "8px";
     
-    // Find header button area
+    // Find header button area with correct standard OR operator
     const refEl = $("security") || $("signup") \vert{}\vert{} $("login") || document.querySelector("header") || document.body;
     if (refEl && refEl.firstChild) {
       refEl.parentNode.insertBefore(themeBtn, refEl);
