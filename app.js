@@ -12,6 +12,7 @@ const AUTH_REDIRECT = "https://etp2p-site.onrender.com/";
 
 let authUser = null;
 let offers = [];
+let totalOffers = 0;
 let adOffset = 0;
 let canLoadMore = false;
 let loadingAds = false;
@@ -367,7 +368,7 @@ function openSignIn() {
   
   $("loginWithPasswordBtn").onclick = async () => {
     const email = $("emailInput").value.trim();
-    const password = $("passwordInput").value;
+    const password = $("emailInput").value;
     if (!email || !password) return notify("Please enter email and password.");
     
     const { error } = await supabase.auth.signInWithPassword({ email, password });
