@@ -198,6 +198,7 @@ async function openProfile() {
   const fullName = profile?.full_name || meta.full_name || "Not set";
   const country = profile?.country || meta.country || "Ethiopia";
   const address = profile?.address || meta.address || "Not set";
+  const bankName = profile?.bank_name || "Commercial Bank of Ethiopia";
   const bankAccountNum = profile?.bank_account_number || "";
 
   $("modalTitle").textContent = "User Profile & Bank Account";
@@ -209,24 +210,39 @@ async function openProfile() {
     
     <hr style="border:0; border-top:1px solid var(--line); margin:15px 0;">
     
-    <label class="label">Registered Legal Full Name (Uneditable)</label>
+    <label class="label">Account Holder Legal Name (Uneditable)</label>
     <div class="entry"><input type="text" value="${esc(fullName)}" disabled style="background:#f0f3f0; color:#555; font-weight:700;"></div>
 
-    <label class="label" for="bankAccountNum" style="margin-top:10px;">Bank Account Number / Details</label>
-    <div class="entry"><input id="bankAccountNum" type="text" placeholder="Enter account number" value="${esc(bankAccountNum)}"></div>
+    <label class="label" for="bankNameSelect" style="margin-top:10px;">Name of the Bank</label>
+    <div class="entry">
+      <select id="bankNameSelect" class="method-select" style="border:0; outline:0; width:100%; font-weight:700; background:transparent;">
+        <option value="Commercial Bank of Ethiopia" ${bankName === "Commercial Bank of Ethiopia" ? "selected" : ""}>Commercial Bank of Ethiopia</option>
+        <option value="Tele Birr" ${bankName === "Tele Birr" ? "selected" : ""}>Tele Birr</option>
+        <option value="CBE Birr" ${bankName === "CBE Birr" ? "selected" : ""}>CBE Birr</option>
+        <option value="Bank of Abyssinia" ${bankName === "Bank of Abyssinia" ? "selected" : ""}>Bank of Abyssinia</option>
+        <option value="Awash Bank" ${bankName === "Awash Bank" ? "selected" : ""}>Awash Bank</option>
+        <option value="Dashen Bank" ${bankName === "Dashen Bank" ? "selected" : ""}>Dashen Bank</option>
+      </select>
+    </div>
+
+    <label class="label" for="bankAccountNum" style="margin-top:10px;">Bank Account Number / Phone (Telebirr)</label>
+    <div class="entry"><input id="bankAccountNum" type="text" placeholder="Enter account number or phone" value="${esc(bankAccountNum)}"></div>
     
-    <p class="hint" style="margin-top:8px;">🔒 Security: Bank payout name automatically matches your verified legal name.</p>
+    <p class="hint" style="margin-top:8px;">🔒 Security: Payout name automatically locks to your verified legal name.</p>
   `;
   $("modalFoot").innerHTML = `<button class="btn primary" id="saveBankBtn">Save Bank Details</button>`;
 
   $("saveBankBtn").onclick = async () => {
+    const selectedBank = $("bankNameSelect").value;
     const accNum = $("bankAccountNum").value.trim();
+
     if (!accNum) return notify("Please enter your bank account number.");
 
     const { error } = await supabase.from("profiles").upsert({
       id: authUser.id,
       full_name: fullName,
-      bank_account_name: fullName, 
+      bank_account_name: fullName,
+      bank_name: selectedBank,
       bank_account_number: accNum,
       country,
       address,
@@ -236,7 +252,7 @@ async function openProfile() {
     if (error) {
       notify(error.message);
     } else {
-      notify("Bank details saved securely!");
+      notify("Bank details saved successfully!");
       closeModal();
     }
   };
