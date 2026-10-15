@@ -13,7 +13,7 @@
     @media(max-width:620px){.wrap{padding:0 14px}.top{height:61px}.topin{gap:12px}.brand{font-size:18px}.mark{height:29px;width:29px}.nav{margin-left:auto;height:61px;gap:15px;font-size:11px}.nav a:first-child{display:none}.right .btn,.right button{display:none}.right .avatar{display:grid}main{padding:23px 0 38px}.heading{display:block}.heading h1{font-size:26px}.heading p{font-size:12px}.heading-actions{margin-top:14px}.heading-actions .btn{flex:1}.stats{margin-bottom:15px}.stat{padding:11px}.stat-icon{height:28px;width:28px}.stat strong{font-size:12px}.stat small{font-size:9px}.cardhead{padding:16px 14px 0}.cardtitle h2{font-size:16px}.escrow{font-size:9px}.tabs{gap:17px}.tab{font-size:11px}.filters{padding:13px 13px;gap:7px}.seg{width:100%}.seg button{flex:1}.field{height:36px;padding:0 8px}.field label{font-size:9px}.field select{min-width:44px}.field.amount input{width:55px}.field.amount select{min-width:37px}.reset{margin-left:0;height:36px;width:36px}.tablebox{overflow:visible}.offers{min-width:0;display:block}.offers thead{display:none}.offers tbody{display:block;padding:0 13px}.offers tr{display:grid;grid-template-columns:1fr auto;gap:8px 6px;padding:13px 0;border-top:1px solid var(--line)}.offers td,.offers td:first-child,.offers td:last-child{display:block;padding:0;border:0;text-align:left}.offers td:nth-child(1){grid-column:1;grid-row:1}.offers td:nth-child(2){grid-column:2;grid-row:1;align-self:center}.offers td:nth-child(3){grid-column:1;grid-row:2}.offers td:nth-child(4){grid-column:1;grid-row:3}.offers td:nth-child(5){display:none}.offers td:nth-child(6){grid-column:2;grid-row:2/4;align-self:center;justify-self:end}.merchant{min-width:0}.price{font-size:15px}.limit{font-size:10px}.limit small{font-size:9px}.pays{min-width:0}.pay{font-size:8px;padding:3px 5px}.note{padding:11px 13px;font-size:9px}.trust{grid-template-columns:1fr;gap:7px;margin-top:11px}.trust article{padding:10px}.foot{display:block}.footlinks{margin-top:9px;flex-wrap:wrap}.order{grid-template-columns:1fr auto;padding:13px 14px}.order div:nth-child(3){display:none}.empty{padding:32px 14px}}
     .offers tbody tr[data-row-offer]{cursor:pointer}.offers tbody tr[data-row-offer]:hover{background:#f8fbf8}.order-buttons{display:flex;gap:5px;justify-content:flex-end;flex-wrap:wrap}.order-buttons .btn{white-space:nowrap}.status.done{background:#e8f5ed;color:#26744b}.status.cancelled{background:#f0f2f0;color:#778178}.method-select{width:100%;border:1px solid var(--line);border-radius:9px;padding:10px;background:white;color:var(--ink);font:inherit;font-size:12px}.modal{max-height:calc(100vh - 32px);overflow-y:auto}
 
-    /* Dark Mode Overrides */
+    /* Full Dark Mode Overrides */
     body.dark-mode {
       --ink: #e2e8e4;
       --muted: #9aa59e;
@@ -30,20 +30,45 @@
       background: #121d15ee !important;
       border-bottom-color: var(--line) !important;
     }
+    body.dark-mode .nav a.active {
+      color: #ffffff !important;
+    }
     body.dark-mode .card,
     body.dark-mode .stat,
     body.dark-mode .modal,
     body.dark-mode .reset,
     body.dark-mode .entry,
-    body.dark-mode .method-select {
-      background: var(--white) !important;
+    body.dark-mode .method-select,
+    body.dark-mode .trust article {
+      background: #16221a !important;
       color: var(--ink) !important;
       border-color: var(--line) !important;
+    }
+    body.dark-mode .trust strong {
+      color: #ffffff !important;
+    }
+    body.dark-mode .trust span {
+      color: #9aa59e !important;
+    }
+    body.dark-mode .btn.quiet,
+    body.dark-mode .btn.outline {
+      background: #1b2d22 !important;
+      color: #ffffff !important;
+      border-color: #2b4233 !important;
+    }
+    body.dark-mode .btn.quiet:hover,
+    body.dark-mode .btn.outline:hover {
+      background: #253d2f !important;
     }
     body.dark-mode .field select,
     body.dark-mode .field input,
     body.dark-mode .entry input {
-      color: var(--ink) !important;
+      color: #ffffff !important;
+      background: transparent !important;
+    }
+    body.dark-mode select option {
+      background: #16221a !important;
+      color: #ffffff !important;
     }
     body.dark-mode .offers th {
       background: #131d17 !important;
@@ -71,8 +96,13 @@
       color: var(--green) !important;
     }
     body.dark-mode .pay {
-      background: #1a2a20 !important;
-      color: #a3b3a9 !important;
+      background: #1c2e22 !important;
+      color: #239c69 !important;
+      border: 1px solid #239c6933 !important;
+    }
+    body.dark-mode .escrow {
+      background: #153323 !important;
+      color: #38c886 !important;
     }
   </style>
 </head>
