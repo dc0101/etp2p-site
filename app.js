@@ -650,23 +650,7 @@ window.handleInitiateTrade = handleInitiateTrade;
 document.addEventListener("DOMContentLoaded", () => {
   initTheme();
 
-  // Safely inject or hook up theme toggle button into header
-  let themeBtn = $("themeToggleBtn");
-  if (!themeBtn) {
-    themeBtn = document.createElement("button");
-    themeBtn.id = "themeToggleBtn";
-    themeBtn.className = "btn small outline";
-    themeBtn.style.marginRight = "8px";
-    
-    // Find header button area with correct standard OR operator
-    const refEl = $("security") || $("signup") \vert{}\vert{} $("login") || document.querySelector("header") || document.body;
-    if (refEl && refEl.firstChild) {
-      refEl.parentNode.insertBefore(themeBtn, refEl);
-    } else {
-      document.body.appendChild(themeBtn);
-    }
-  }
-  
+  const themeBtn = $("themeToggleBtn");
   if (themeBtn) {
     themeBtn.textContent = document.body.classList.contains("dark-mode") ? "☀️ Light" : "🌙 Dark";
     themeBtn.onclick = () => {
