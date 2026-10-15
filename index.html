@@ -1,43 +1,191 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#f6f8f5"><meta name="referrer" content="strict-origin-when-cross-origin"><meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; connect-src 'self' https://gguiuhwbyjjaomfblpot.supabase.co; img-src 'self' data:; style-src 'self' 'unsafe-inline'; object-src 'none'; base-uri 'self'; form-action 'self'"><title>Etp2p — P2P crypto marketplace</title>
-<style>
-:root{--ink:#17241d;--muted:#7d8b82;--line:#e8eee9;--green:#176b49;--pale:#eaf5ed;--canvas:#f6f8f5;--white:#fff;--shadow:0 14px 38px #203c2b0a}*{box-sizing:border-box}body{margin:0;background:var(--canvas);color:var(--ink);font:14px/1.5 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}button,input,select{font:inherit}button{cursor:pointer}a{color:inherit;text-decoration:none}.wrap{max-width:1240px;margin:auto;padding:0 32px}.top{height:72px;background:#ffffffed;border-bottom:1px solid var(--line);display:flex;align-items:center}.topin{display:flex;align-items:center;gap:42px;width:100%}.brand{font-size:20px;font-weight:850;letter-spacing:-.8px;display:flex;align-items:center;gap:9px}.mark{height:31px;width:31px;border-radius:10px;background:var(--green);color:#fff;display:grid;place-items:center;font-size:16px}.nav{display:flex;gap:28px;height:72px;align-items:center;color:#738178;font-weight:650}.nav a{height:100%;display:grid;align-items:center;position:relative}.nav a.active{color:var(--ink)}.nav a.active:after{content:"";height:2px;position:absolute;bottom:0;left:0;right:0;background:var(--green)}.right{margin-left:auto;display:flex;align-items:center;gap:12px}.avatar{height:34px;width:34px;border-radius:50%;background:#e6efe8;color:#376248;display:grid;place-items:center;font-weight:800}.btn{border:0;border-radius:10px;padding:10px 15px;font-weight:750;transition:.15s}.btn:hover{transform:translateY(-1px)}.primary{background:var(--green);color:#fff}.dark{background:#1b2820;color:white}.outline{background:white;border:1px solid var(--line);color:var(--ink)}.quiet{background:#eff4ef;color:var(--ink)}.small{font-size:12px;padding:8px 13px}main{padding:34px 0 56px}.heading{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:23px;gap:18px}.eyebrow{font-size:10px;text-transform:uppercase;letter-spacing:1.6px;color:var(--green);font-weight:850}.heading h1{margin:6px 0;font-size:31px;line-height:1.2;letter-spacing:-1.1px}.heading p{margin:0;color:var(--muted)}.heading-actions{display:flex;gap:9px}.stats{display:grid;grid-template-columns:1fr;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:15px;overflow:hidden;margin-bottom:22px}.stat{background:white;padding:15px 18px;display:flex;gap:11px;align-items:center}.stat-icon{width:32px;height:32px;border-radius:10px;background:var(--pale);color:var(--green);display:grid;place-items:center;font-size:16px}.stat small{display:block;color:#98a39b;font-size:10px}.stat strong{font-size:14px}.live{color:#2d9b5d}.card{background:white;border:1px solid #edf0ed;border-radius:17px;box-shadow:var(--shadow);overflow:hidden}.cardhead{padding:20px 22px 0}.cardtitle{display:flex;align-items:center;justify-content:space-between}.cardtitle h2{font-size:18px;margin:0;letter-spacing:-.4px}.escrow{background:#eff7f0;color:#36744e;border-radius:20px;padding:5px 9px;font-size:10px;font-weight:750}.tabs{display:flex;gap:23px;border-bottom:1px solid var(--line);margin-top:15px}.tab{background:none;border:0;color:#849087;padding:11px 0 12px;font-weight:700;position:relative}.tab.on{color:var(--green)}.tab.on:after{content:"";position:absolute;height:2px;left:0;right:0;bottom:-1px;background:var(--green)}.filters{display:flex;gap:9px;align-items:center;padding:16px 22px;flex-wrap:wrap}.seg{background:#f1f4f1;border-radius:10px;padding:4px;display:flex}.seg button{border:0;background:none;color:#829087;border-radius:7px;padding:7px 17px;font-size:12px;font-weight:750}.seg button.on{background:white;color:var(--green);box-shadow:0 1px 5px #15271c14}.field{height:39px;border:1px solid var(--line);border-radius:9px;padding:0 10px;display:flex;align-items:center;gap:7px;color:#929e95}.field label{font-size:10px}.field select,.field input{border:0;background:transparent;outline:0;color:var(--ink);font-size:12px;font-weight:700;min-width:55px}.field input{width:75px}.field.amount select{min-width:44px}.reset{margin-left:auto;height:39px;width:39px;background:white;border:1px solid var(--line);border-radius:9px;color:#6e7a72;font-size:17px}.tablebox{overflow:auto}.offers{width:100%;border-collapse:collapse;min-width:790px}.offers th{text-align:left;background:#fafbfa;padding:10px 17px;text-transform:uppercase;letter-spacing:.7px;font-size:9px;color:#9aa59d}.offers th:first-child,.offers td:first-child{padding-left:22px}.offers th:last-child,.offers td:last-child{text-align:right;padding-right:22px}.offers td{padding:15px 17px;border-top:1px solid #f0f2f0;vertical-align:middle}.offers tbody tr:hover{background:#fcfdfb}.merchant{display:flex;align-items:center;gap:10px;min-width:180px}.micon{height:35px;width:35px;border-radius:50%;background:#eaf1ec;display:grid;place-items:center;color:#477455;font-size:11px;font-weight:800}.mname{font-size:12px;font-weight:750}.verified{color:#148354}.meta{font-size:10px;color:#9aa49d;margin-top:2px}.price{font-size:16px;font-weight:850;white-space:nowrap}.price small{font-size:10px;color:#849188;font-weight:550}.limit{font-size:12px;font-weight:700;white-space:nowrap}.limit small{color:#96a199;font-size:10px;font-weight:500}.pays{display:flex;gap:4px;flex-wrap:wrap;min-width:120px}.pay{background:#f1f4f1;color:#6d7a71;border-radius:5px;padding:3px 6px;font-size:9px;font-weight:700;white-space:nowrap}.pay.bank{background:#edf4f7;color:#4e7486}.pay.wallet{background:#faf1e5;color:#956b31}.rate{font-size:11px;font-weight:750}.rate small{display:block;color:#9aa49d;font-size:9px;font-weight:500}.note{padding:12px 22px;border-top:1px solid var(--line);display:flex;justify-content:space-between;color:#95a097;font-size:10px}.note strong{color:#66746b}.trust{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:16px}.trust article{display:flex;gap:10px;padding:14px;background:#ffffffb8;border:1px solid var(--line);border-radius:13px}.trust i{font-style:normal;color:var(--green);background:var(--pale);height:28px;width:28px;border-radius:8px;display:grid;place-items:center;flex:none}.trust strong{font-size:11px;display:block}.trust span{font-size:10px;color:#87938a}.orders{display:none}.orders.show{display:block}.market.hide{display:none}.order{display:grid;grid-template-columns:1.4fr 1fr 1fr auto;gap:12px;align-items:center;border-top:1px solid var(--line);padding:15px 22px}.order small{display:block;color:#94a097;font-size:10px}.order strong{font-size:12px}.status{background:#fff4dc;color:#9a6a17;border-radius:20px;font-size:10px;padding:5px 9px;font-weight:750}.empty{text-align:center;color:#849188;padding:42px 20px}.empty strong{display:block;color:var(--ink);margin:7px}.modalbg{position:fixed;inset:0;background:#12201888;z-index:5;display:none;align-items:center;justify-content:center;padding:16px}.modalbg.show{display:flex}.modal{background:white;width:min(100%,480px);border-radius:17px;overflow:hidden;box-shadow:0 20px 65px #10221845}.modalhead{display:flex;justify-content:space-between;align-items:center;padding:18px 21px;border-bottom:1px solid var(--line)}.modalhead h3{font-size:17px;margin:0}.close{border:0;border-radius:50%;height:30px;width:30px;background:#f0f3f0;color:#68776d;font-size:18px}.mbody{padding:20px 21px}.summary{display:flex;justify-content:space-between;padding:12px;background:#f6f8f6;border-radius:10px;font-size:12px}.summary span{color:#87938a;font-size:10px}.label{font-size:11px;font-weight:750;display:block;margin:15px 0 6px}.entry{height:46px;border:1px solid var(--line);border-radius:9px;display:flex;align-items:center;padding:0 12px}.entry input{border:0;outline:0;flex:1;min-width:0;font-weight:750}.entry span{color:#7d8a81;font-size:11px}.hint{font-size:10px;color:#929d95;margin-top:5px}.method{border:1px solid #e5ebe6;background:#fafcfa;padding:11px;border-radius:9px;font-weight:700;font-size:11px;width:100%;text-align:left}.lines{border-top:1px dashed #e1e7e1;margin-top:14px;padding-top:12px}.line{display:flex;justify-content:space-between;color:#849087;font-size:11px;padding:3px 0}.line b{color:var(--ink)}.mfoot{padding:0 21px 20px}.mfoot .btn{width:100%;height:44px}.fine{text-align:center;color:#98a39b;font-size:9px;margin-top:8px}.sec-note{font-size:11px;color:#839087;margin:0 0 13px}.security-list{display:grid;gap:8px}.security-row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px;border:1px solid var(--line);border-radius:10px}.security-row b{display:block;font-size:12px}.security-row small{display:block;color:#87938a;font-size:10px;margin-top:2px}.security-row input{accent-color:var(--green);width:17px;height:17px;flex:none}.toast{position:fixed;bottom:20px;left:50%;transform:translate(-50%,15px);opacity:0;background:#203126;color:white;padding:10px 15px;border-radius:9px;font-size:11px;transition:.2s;z-index:8}.toast.show{opacity:1;transform:translate(-50%,0)}footer{padding:18px 0 24px;color:#99a39c;font-size:10px}.foot{border-top:1px solid var(--line);padding-top:14px;display:flex;justify-content:space-between;gap:12px}.footlinks{display:flex;gap:17px}
-@media(max-width:850px){.wrap{padding:0 20px}.topin{gap:24px}.nav{gap:18px}.stats{grid-template-columns:1fr 1fr}.order{grid-template-columns:1.3fr 1fr auto}.order div:nth-child(2){display:none}}
-@media(max-width:620px){.wrap{padding:0 14px}.top{height:61px}.topin{gap:12px}.brand{font-size:18px}.mark{height:29px;width:29px}.nav{margin-left:auto;height:61px;gap:15px;font-size:11px}.nav a:first-child{display:none}.right .btn,.right button{display:none}.right .avatar{display:grid}main{padding:23px 0 38px}.heading{display:block}.heading h1{font-size:26px}.heading p{font-size:12px}.heading-actions{margin-top:14px}.heading-actions .btn{flex:1}.stats{margin-bottom:15px}.stat{padding:11px}.stat-icon{height:28px;width:28px}.stat strong{font-size:12px}.stat small{font-size:9px}.cardhead{padding:16px 14px 0}.cardtitle h2{font-size:16px}.escrow{font-size:9px}.tabs{gap:17px}.tab{font-size:11px}.filters{padding:13px 13px;gap:7px}.seg{width:100%}.seg button{flex:1}.field{height:36px;padding:0 8px}.field label{font-size:9px}.field select{min-width:44px}.field.amount input{width:55px}.field.amount select{min-width:37px}.reset{margin-left:0;height:36px;width:36px}.tablebox{overflow:visible}.offers{min-width:0;display:block}.offers thead{display:none}.offers tbody{display:block;padding:0 13px}.offers tr{display:grid;grid-template-columns:1fr auto;gap:8px 6px;padding:13px 0;border-top:1px solid var(--line)}.offers td,.offers td:first-child,.offers td:last-child{display:block;padding:0;border:0;text-align:left}.offers td:nth-child(1){grid-column:1;grid-row:1}.offers td:nth-child(2){grid-column:2;grid-row:1;align-self:center}.offers td:nth-child(3){grid-column:1;grid-row:2}.offers td:nth-child(4){grid-column:1;grid-row:3}.offers td:nth-child(5){display:none}.offers td:nth-child(6){grid-column:2;grid-row:2/4;align-self:center;justify-self:end}.merchant{min-width:0}.price{font-size:15px}.limit{font-size:10px}.limit small{font-size:9px}.pays{min-width:0}.pay{font-size:8px;padding:3px 5px}.note{padding:11px 13px;font-size:9px}.trust{grid-template-columns:1fr;gap:7px;margin-top:11px}.trust article{padding:10px}.foot{display:block}.footlinks{margin-top:9px;flex-wrap:wrap}.order{grid-template-columns:1fr auto;padding:13px 14px}.order div:nth-child(3){display:none}.empty{padding:32px 14px}}
-.offers tbody tr[data-row-offer]{cursor:pointer}.offers tbody tr[data-row-offer]:hover{background:#f8fbf8}.order-buttons{display:flex;gap:5px;justify-content:flex-end;flex-wrap:wrap}.order-buttons .btn{white-space:nowrap}.status.done{background:#e8f5ed;color:#26744b}.status.cancelled{background:#f0f2f0;color:#778178}.method-select{width:100%;border:1px solid var(--line);border-radius:9px;padding:10px;background:white;color:var(--ink);font:inherit;font-size:12px}.modal{max-height:calc(100vh - 32px);overflow-y:auto}</style></head>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#f6f8f5">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; connect-src 'self' https://gguiuhwbyjjaomfblpot.supabase.co; img-src 'self' data:; style-src 'self' 'unsafe-inline'; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <title>Etp2p — P2P crypto marketplace</title>
+  <style>
+    :root{--ink:#17241d;--muted:#7d8b82;--line:#e8eee9;--green:#176b49;--pale:#eaf5ed;--canvas:#f6f8f5;--white:#fff;--shadow:0 14px 38px #203c2b0a}*{box-sizing:border-box}body{margin:0;background:var(--canvas);color:var(--ink);font:14px/1.5 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}button,input,select{font:inherit}button{cursor:pointer}a{color:inherit;text-decoration:none}.wrap{max-width:1240px;margin:auto;padding:0 32px}.top{height:72px;background:#ffffffed;border-bottom:1px solid var(--line);display:flex;align-items:center}.topin{display:flex;align-items:center;gap:42px;width:100%}.brand{font-size:20px;font-weight:850;letter-spacing:-.8px;display:flex;align-items:center;gap:9px}.mark{height:31px;width:31px;border-radius:10px;background:var(--green);color:#fff;display:grid;place-items:center;font-size:16px}.nav{display:flex;gap:28px;height:72px;align-items:center;color:#738178;font-weight:650}.nav a{height:100%;display:grid;align-items:center;position:relative}.nav a.active{color:var(--ink)}.nav a.active:after{content:"";height:2px;position:absolute;bottom:0;left:0;right:0;background:var(--green)}.right{margin-left:auto;display:flex;align-items:center;gap:12px}.avatar{height:34px;width:34px;border-radius:50%;background:#e6efe8;color:#376248;display:grid;place-items:center;font-weight:800}.btn{border:0;border-radius:10px;padding:10px 15px;font-weight:750;transition:.15s}.btn:hover{transform:translateY(-1px)}.primary{background:var(--green);color:#fff}.dark{background:#1b2820;color:white}.outline{background:white;border:1px solid var(--line);color:var(--ink)}.quiet{background:#eff4ef;color:var(--ink)}.small{font-size:12px;padding:8px 13px}main{padding:34px 0 56px}.heading{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:23px;gap:18px}.eyebrow{font-size:10px;text-transform:uppercase;letter-spacing:1.6px;color:var(--green);font-weight:850}.heading h1{margin:6px 0;font-size:31px;line-height:1.2;letter-spacing:-1.1px}.heading p{margin:0;color:var(--muted)}.heading-actions{display:flex;gap:9px}.stats{display:grid;grid-template-columns:1fr;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:15px;overflow:hidden;margin-bottom:22px}.stat{background:white;padding:15px 18px;display:flex;gap:11px;align-items:center}.stat-icon{width:32px;height:32px;border-radius:10px;background:var(--pale);color:var(--green);display:grid;place-items:center;font-size:16px}.stat small{display:block;color:#98a39b;font-size:10px}.stat strong{font-size:14px}.live{color:#2d9b5d}.card{background:white;border:1px solid #edf0ed;border-radius:17px;box-shadow:var(--shadow);overflow:hidden}.cardhead{padding:20px 22px 0}.cardtitle{display:flex;align-items:center;justify-content:space-between}.cardtitle h2{font-size:18px;margin:0;letter-spacing:-.4px}.escrow{background:#eff7f0;color:#36744e;border-radius:20px;padding:5px 9px;font-size:10px;font-weight:750}.tabs{display:flex;gap:23px;border-bottom:1px solid var(--line);margin-top:15px}.tab{background:none;border:0;color:#849087;padding:11px 0 12px;font-weight:700;position:relative}.tab.on{color:var(--green)}.tab.on:after{content:"";position:absolute;height:2px;left:0;right:0;bottom:-1px;background:var(--green)}.filters{display:flex;gap:9px;align-items:center;padding:16px 22px;flex-wrap:wrap}.seg{background:#f1f4f1;border-radius:10px;padding:4px;display:flex}.seg button{border:0;background:none;color:#829087;border-radius:7px;padding:7px 17px;font-size:12px;font-weight:750}.seg button.on{background:white;color:var(--green);box-shadow:0 1px 5px #15271c14}.field{height:39px;border:1px solid var(--line);border-radius:9px;padding:0 10px;display:flex;align-items:center;gap:7px;color:#929e95}.field label{font-size:10px}.field select,.field input{border:0;background:transparent;outline:0;color:var(--ink);font-size:12px;font-weight:700;min-width:55px}.field input{width:75px}.field.amount select{min-width:44px}.reset{margin-left:auto;height:39px;width:39px;background:white;border:1px solid var(--line);border-radius:9px;color:#6e7a72;font-size:17px}.tablebox{overflow:auto}.offers{width:100%;border-collapse:collapse;min-width:790px}.offers th{text-align:left;background:#fafbfa;padding:10px 17px;text-transform:uppercase;letter-spacing:.7px;font-size:9px;color:#9aa59d}.offers th:first-child,.offers td:first-child{padding-left:22px}.offers th:last-child,.offers td:last-child{text-align:right;padding-right:22px}.offers td{padding:15px 17px;border-top:1px solid #f0f2f0;vertical-align:middle}.offers tbody tr:hover{background:#fcfdfb}.merchant{display:flex;align-items:center;gap:10px;min-width:180px}.micon{height:35px;width:35px;border-radius:50%;background:#eaf1ec;display:grid;place-items:center;color:#477455;font-size:11px;font-weight:800}.mname{font-size:12px;font-weight:750}.verified{color:#148354}.meta{font-size:10px;color:#9aa49d;margin-top:2px}.price{font-size:16px;font-weight:850;white-space:nowrap}.price small{font-size:10px;color:#849188;font-weight:550}.limit{font-size:12px;font-weight:700;white-space:nowrap}.limit small{color:#96a199;font-size:10px;font-weight:500}.pays{display:flex;gap:4px;flex-wrap:wrap;min-width:120px}.pay{background:#f1f4f1;color:#6d7a71;border-radius:5px;padding:3px 6px;font-size:9px;font-weight:700;white-space:nowrap}.pay.bank{background:#edf4f7;color:#4e7486}.pay.wallet{background:#faf1e5;color:#956b31}.rate{font-size:11px;font-weight:750}.rate small{display:block;color:#9aa49d;font-size:9px;font-weight:500}.note{padding:12px 22px;border-top:1px solid var(--line);display:flex;justify-content:space-between;color:#95a097;font-size:10px}.note strong{color:#66746b}.trust{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:16px}.trust article{display:flex;gap:10px;padding:14px;background:#ffffffb8;border:1px solid var(--line);border-radius:13px}.trust i{font-style:normal;color:var(--green);background:var(--pale);height:28px;width:28px;border-radius:8px;display:grid;place-items:center;flex:none}.trust strong{font-size:11px;display:block}.trust span{font-size:10px;color:#87938a}.orders{display:none}.orders.show{display:block}.market.hide{display:none}.order{display:grid;grid-template-columns:1.4fr 1fr 1fr auto;gap:12px;align-items:center;border-top:1px solid var(--line);padding:15px 22px}.order small{display:block;color:#94a097;font-size:10px}.order strong{font-size:12px}.status{background:#fff4dc;color:#9a6a17;border-radius:20px;font-size:10px;padding:5px 9px;font-weight:750}.empty{text-align:center;color:#849188;padding:42px 20px}.empty strong{display:block;color:var(--ink);margin:7px}.modalbg{position:fixed;inset:0;background:#12201888;z-index:5;display:none;align-items:center;justify-content:center;padding:16px}.modalbg.show{display:flex}.modal{background:white;width:min(100%,480px);border-radius:17px;overflow:hidden;box-shadow:0 20px 65px #10221845}.modalhead{display:flex;justify-content:space-between;align-items:center;padding:18px 21px;border-bottom:1px solid var(--line)}.modalhead h3{font-size:17px;margin:0}.close{border:0;border-radius:50%;height:30px;width:30px;background:#f0f3f0;color:#68776d;font-size:18px}.mbody{padding:20px 21px}.summary{display:flex;justify-content:space-between;padding:12px;background:#f6f8f6;border-radius:10px;font-size:12px}.summary span{color:#87938a;font-size:10px}.label{font-size:11px;font-weight:750;display:block;margin:15px 0 6px}.entry{height:46px;border:1px solid var(--line);border-radius:9px;display:flex;align-items:center;padding:0 12px}.entry input{border:0;outline:0;flex:1;min-width:0;font-weight:750}.entry span{color:#7d8a81;font-size:11px}.hint{font-size:10px;color:#929d95;margin-top:5px}.method{border:1px solid #e5ebe6;background:#fafcfa;padding:11px;border-radius:9px;font-weight:700;font-size:11px;width:100%;text-align:left}.lines{border-top:1px dashed #e1e7e1;margin-top:14px;padding-top:12px}.line{display:flex;justify-content:space-between;color:#849087;font-size:11px;padding:3px 0}.line b{color:var(--ink)}.mfoot{padding:0 21px 20px}.mfoot .btn{width:100%;height:44px}.fine{text-align:center;color:#98a39b;font-size:9px;margin-top:8px}.sec-note{font-size:11px;color:#839087;margin:0 0 13px}.security-list{display:grid;gap:8px}.security-row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px;border:1px solid var(--line);border-radius:10px}.security-row b{display:block;font-size:12px}.security-row small{display:block;color:#87938a;font-size:10px;margin-top:2px}.security-row input{accent-color:var(--green);width:17px;height:17px;flex:none}.toast{position:fixed;bottom:20px;left:50%;transform:translate(-50%,15px);opacity:0;background:#203126;color:white;padding:10px 15px;border-radius:9px;font-size:11px;transition:.2s;z-index:8}.toast.show{opacity:1;transform:translate(-50%,0)}footer{padding:18px 0 24px;color:#99a39c;font-size:10px}.foot{border-top:1px solid var(--line);padding-top:14px;display:flex;justify-content:space-between;gap:12px}.footlinks{display:flex;gap:17px}
+    @media(max-width:850px){.wrap{padding:0 20px}.topin{gap:24px}.nav{gap:18px}.stats{grid-template-columns:1fr 1fr}.order{grid-template-columns:1.3fr 1fr auto}.order div:nth-child(2){display:none}}
+    @media(max-width:620px){.wrap{padding:0 14px}.top{height:61px}.topin{gap:12px}.brand{font-size:18px}.mark{height:29px;width:29px}.nav{margin-left:auto;height:61px;gap:15px;font-size:11px}.nav a:first-child{display:none}.right .btn,.right button{display:none}.right .avatar{display:grid}main{padding:23px 0 38px}.heading{display:block}.heading h1{font-size:26px}.heading p{font-size:12px}.heading-actions{margin-top:14px}.heading-actions .btn{flex:1}.stats{margin-bottom:15px}.stat{padding:11px}.stat-icon{height:28px;width:28px}.stat strong{font-size:12px}.stat small{font-size:9px}.cardhead{padding:16px 14px 0}.cardtitle h2{font-size:16px}.escrow{font-size:9px}.tabs{gap:17px}.tab{font-size:11px}.filters{padding:13px 13px;gap:7px}.seg{width:100%}.seg button{flex:1}.field{height:36px;padding:0 8px}.field label{font-size:9px}.field select{min-width:44px}.field.amount input{width:55px}.field.amount select{min-width:37px}.reset{margin-left:0;height:36px;width:36px}.tablebox{overflow:visible}.offers{min-width:0;display:block}.offers thead{display:none}.offers tbody{display:block;padding:0 13px}.offers tr{display:grid;grid-template-columns:1fr auto;gap:8px 6px;padding:13px 0;border-top:1px solid var(--line)}.offers td,.offers td:first-child,.offers td:last-child{display:block;padding:0;border:0;text-align:left}.offers td:nth-child(1){grid-column:1;grid-row:1}.offers td:nth-child(2){grid-column:2;grid-row:1;align-self:center}.offers td:nth-child(3){grid-column:1;grid-row:2}.offers td:nth-child(4){grid-column:1;grid-row:3}.offers td:nth-child(5){display:none}.offers td:nth-child(6){grid-column:2;grid-row:2/4;align-self:center;justify-self:end}.merchant{min-width:0}.price{font-size:15px}.limit{font-size:10px}.limit small{font-size:9px}.pays{min-width:0}.pay{font-size:8px;padding:3px 5px}.note{padding:11px 13px;font-size:9px}.trust{grid-template-columns:1fr;gap:7px;margin-top:11px}.trust article{padding:10px}.foot{display:block}.footlinks{margin-top:9px;flex-wrap:wrap}.order{grid-template-columns:1fr auto;padding:13px 14px}.order div:nth-child(3){display:none}.empty{padding:32px 14px}}
+    .offers tbody tr[data-row-offer]{cursor:pointer}.offers tbody tr[data-row-offer]:hover{background:#f8fbf8}.order-buttons{display:flex;gap:5px;justify-content:flex-end;flex-wrap:wrap}.order-buttons .btn{white-space:nowrap}.status.done{background:#e8f5ed;color:#26744b}.status.cancelled{background:#f0f2f0;color:#778178}.method-select{width:100%;border:1px solid var(--line);border-radius:9px;padding:10px;background:white;color:var(--ink);font:inherit;font-size:12px}.modal{max-height:calc(100vh - 32px);overflow-y:auto}
+  </style>
+</head>
 <body>
-<header class="top"><div class="wrap topin"><a class="brand" href="#" aria-label="Etp2p home"><span class="mark">E</span>Etp2p</a><nav class="nav"><a href="#" data-view="market">Markets</a><a href="#" data-view="market" class="active">P2P</a><a href="#" data-view="orders">Orders</a><a href="#" data-view="ads">My ads</a></nav><div class="right"><button class="btn outline small" id="signup" style="display:inline-flex">Sign up</button><button class="btn dark small" id="login" style="display:inline-flex">Sign in</button><button class="btn quiet small" id="security">Security</button><button class="avatar" id="profile" title="Profile and security options" aria-label="Profile and security options">A</button></div></div></header>
+<header class="top">
+  <div class="wrap topin">
+    <a class="brand" href="#" aria-label="Etp2p home"><span class="mark">E</span>Etp2p</a>
+    <nav class="nav">
+      <a href="#" data-view="market">Markets</a>
+      <a href="#" data-view="market" class="active">P2P</a>
+      <a href="#" data-view="orders">Orders</a>
+      <a href="#" data-view="ads">My ads</a>
+    </nav>
+    <div class="right">
+      <button class="btn outline small" id="signup" style="display:inline-flex">Sign up</button>
+      <button class="btn dark small" id="login" style="display:inline-flex">Sign in</button>
+      <button class="btn quiet small" id="security">Security</button>
+      <button class="avatar" id="profile" title="Profile and security options" aria-label="Profile and security options">A</button>
+    </div>
+  </div>
+</header>
 <main class="wrap">
-<section class="heading"><div><div class="eyebrow">Peer to peer</div><h1 id="title">Buy and sell crypto, your way.</h1><p id="subtitle">Offers from Etp2p users, shared through Supabase.</p></div><div class="heading-actions"><button class="btn outline" id="how">How P2P works ↗</button><button class="btn primary" id="post">＋ Post an ad</button></div></section>
-<section class="stats"><div class="stat"><i class="stat-icon">◷</i><div><small>Account protection</small><strong>Authenticator for ads &amp; order updates</strong></div></div></section>
-<section class="card market" id="market">
-<div class="cardhead"><div class="cardtitle"><h2>Find your offer</h2><span class="escrow">Shared listings · no escrow</span></div><div class="tabs"><button class="tab on" data-tab="all">All ads</button><button class="tab" data-view="orders">My orders</button></div></div>
-<div class="filters"><div class="seg"><button class="on" data-side="buy">Buy</button><button data-side="sell">Sell</button></div>
-<div class="field"><label>Asset</label><select id="coin" aria-label="Crypto asset"><option>USDT</option></select></div>
-<div class="field"><label>With</label><select id="fiat" aria-label="Fiat currency"><option value="USD">USD</option><option value="ETB" selected>Birr (ETB)</option></select></div>
-<div class="field amount"><label>Amount</label><input id="amount" type="number" min="0" placeholder="Any"><select id="amountUnit" aria-label="Amount unit"><option value="fiat">USD</option><option value="crypto">USDT</option></select></div>
-<div class="field"><label>Pay with</label><select id="payment" aria-label="Ethiopian payment method"><option value="all">Any method</option><option>Commercial Bank of Ethiopia</option><option>Tele Birr</option><option>CBE Birr</option><option>Bank of Abyssinia</option><option>Awash Bank</option><option>Dashen Bank</option></select></div>
-<button class="reset" id="reset" title="Clear filters" aria-label="Clear filters">↺</button></div>
-<div class="tablebox"><table class="offers"><thead><tr><th>Advertiser</th><th>Rate</th><th>Available / limit</th><th>Payment</th><th>Merchant history</th><th></th></tr></thead><tbody id="rows"></tbody></table></div>
-<div class="note"><span>Showing <strong id="count">0</strong> offers</span><span><button class="btn quiet small" id="loadMore" hidden>Load more</button><button class="btn quiet small" id="refreshOffers">Refresh offers</button></span></div>
-</section>
-<section class="card orders" id="orders"><div class="cardhead"><div class="cardtitle"><h2>My P2P orders</h2><div class="field"><label>Status</label><select id="orderFilter"><option value="all">All orders</option><option value="progress">In progress</option><option value="completed">Completed</option><option value="cancelled">Cancelled</option></select></div></div><div class="tabs"><button class="tab on" data-oside="all">All</button><button class="tab" data-oside="buy">Buy</button><button class="tab" data-oside="sell">Sell</button></div></div><div id="orderList"></div></section>
-<section class="trust"><article><i>✓</i><div><strong>Private order records</strong><span>Only the buyer and seller can read an order.</span></div></article><article><i>◷</i><div><strong>No payment or escrow</strong><span>Etp2p does not move crypto or verify bank transfers.</span></div></article></section>
+  <section class="heading">
+    <div>
+      <div class="eyebrow">Peer to peer</div>
+      <h1 id="title">Buy and sell crypto, your way.</h1>
+      <p id="subtitle">Offers from Etp2p users, shared through Supabase.</p>
+    </div>
+    <div class="heading-actions">
+      <button class="btn outline" id="how">How P2P works ↗</button>
+      <button class="btn primary" id="post">＋ Post an ad</button>
+    </div>
+  </section>
+  <section class="stats">
+    <div class="stat">
+      <i class="stat-icon">◷</i>
+      <div>
+        <small>Account protection</small>
+        <strong>Authenticator for ads &amp; order updates</strong>
+      </div>
+    </div>
+  </section>
+  <section class="card market" id="market">
+    <div class="cardhead">
+      <div class="cardtitle">
+        <h2>Find your offer</h2>
+        <span class="escrow">Database Escrow Protected</span>
+      </div>
+      <div class="tabs">
+        <button class="tab on" data-tab="all">All ads</button>
+        <button class="tab" data-view="orders">My orders</button>
+      </div>
+    </div>
+    <div class="filters">
+      <div class="seg">
+        <button class="on" data-side="buy">Buy</button>
+        <button data-side="sell">Sell</button>
+      </div>
+      <div class="field">
+        <label>Asset</label>
+        <select id="coin" aria-label="Crypto asset"><option>USDT</option></select>
+      </div>
+      <div class="field">
+        <label>With</label>
+        <select id="fiat" aria-label="Fiat currency">
+          <option value="USD">USD</option>
+          <option value="ETB" selected>Birr (ETB)</option>
+        </select>
+      </div>
+      <div class="field amount">
+        <label>Amount</label>
+        <input id="amount" type="number" min="0" placeholder="Any">
+        <select id="amountUnit" aria-label="Amount unit">
+          <option value="fiat">USD</option>
+          <option value="crypto">USDT</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Pay with</label>
+        <select id="payment" aria-label="Ethiopian payment method">
+          <option value="all">Any method</option>
+          <option>Commercial Bank of Ethiopia</option>
+          <option>Tele Birr</option>
+          <option>CBE Birr</option>
+          <option>Bank of Abyssinia</option>
+          <option>Awash Bank</option>
+          <option>Dashen Bank</option>
+        </select>
+      </div>
+      <button class="reset" id="reset" title="Clear filters" aria-label="Clear filters">↺</button>
+    </div>
+    <div class="tablebox">
+      <table class="offers">
+        <thead>
+          <tr>
+            <th>Advertiser</th>
+            <th>Rate</th>
+            <th>Available / limit</th>
+            <th>Payment</th>
+            <th>Merchant history</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+    <div class="note">
+      <span>Showing <strong id="count">0</strong> offers</span>
+      <span>
+        <button class="btn quiet small" id="loadMore" hidden>Load more</button>
+        <button class="btn quiet small" id="refreshOffers">Refresh offers</button>
+      </span>
+    </div>
+  </section>
+  <section class="card orders" id="orders">
+    <div class="cardhead">
+      <div class="cardtitle">
+        <h2>My P2P orders</h2>
+        <div class="field">
+          <label>Status</label>
+          <select id="orderFilter">
+            <option value="all">All orders</option>
+            <option value="progress">In progress</option>
+            <option value="completed">Completed</option>
+            <option value="cancelled">Cancelled</option>
+          </select>
+        </div>
+      </div>
+      <div class="tabs">
+        <button class="tab on" data-oside="all">All</button>
+        <button class="tab" data-oside="buy">Buy</button>
+        <button class="tab" data-oside="sell">Sell</button>
+      </div>
+    </div>
+    <div id="orderList"></div>
+  </section>
+  <section class="trust">
+    <article>
+      <i>✓</i>
+      <div>
+        <strong>Private order records</strong>
+        <span>Only the buyer and seller can read an order.</span>
+      </div>
+    </article>
+    <article>
+      <i>🔒</i>
+      <div>
+        <strong>In-House Escrow Protected</strong>
+        <span>Funds are safely locked in database escrow until trade release.</span>
+      </div>
+    </article>
+  </section>
 </main>
-<footer><div class="wrap foot"><span>© 2026 Etp2p · Supabase marketplace</span><div class="footlinks"><a href="#" id="help">Help center</a><a href="#" id="terms">P2P terms</a><span>Order records only · No escrow or payment verification</span></div></div></footer>
-<div class="modalbg" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><div class="modal"><div class="modalhead"><h3 id="modalTitle">Buy USDT</h3><button class="close" data-close aria-label="Close">×</button></div><div class="mbody" id="modalBody"></div><div class="mfoot" id="modalFoot"></div></div></div><div class="toast" id="toast" role="status"></div>
+<footer>
+  <div class="wrap foot">
+    <span>© 2026 Etp2p · Supabase marketplace</span>
+    <div class="footlinks">
+      <a href="#" id="help">Help center</a>
+      <a href="#" id="terms">P2P terms</a>
+      <span>Escrow Protected Trading</span>
+    </div>
+  </div>
+</footer>
+<div class="modalbg" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <div class="modal">
+    <div class="modalhead">
+      <h3 id="modalTitle">Buy USDT</h3>
+      <button class="close" data-close aria-label="Close">×</button>
+    </div>
+    <div class="mbody" id="modalBody"></div>
+    <div class="mfoot" id="modalFoot"></div>
+  </div>
+</div>
+<div class="toast" id="toast" role="status"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script type="module" src="./app.js"></script>
-</body></html>
-
-
-
-
-
-
-
-
-
-
-
-
+</body>
+</html>
