@@ -98,3 +98,60 @@ function openSignIn() {
   };
   $("modal").classList.add("show");
 }
+// Connect all DOM buttons and listeners on load
+document.addEventListener("DOMContentLoaded", () => {
+  supabase.auth.getSession().then(({ data: { session } }) => {
+    updateAccount(session?.user || null);
+    loadAds(false);
+  });
+
+  supabase.auth.onAuthStateChange((_event, session) => {
+    updateAccount(session?.user || null);
+  });
+
+  // Top header and profile button connections
+  if ($("login")) $("login").onclick = () => (authUser ? openSecurity() : openSignIn());
+  if ($("signup")) $("signup").onclick = () => (authUser ? openProfile() : openSignIn());
+  if ($("security")) $("security").onclick = () => openSecurity();
+  if ($("profile")) $("profile").onclick = () => openProfile();
+  if ($("post")) $("post").onclick = () => (authUser ? setView("ads") : openSignIn());
+  if ($("how")) $("how").onclick = () => openHowP2PWorks();
+
+  // Filter connections
+  if ($("coin")) $("coin").onchange = () => scheduleAdsLoad();
+  if ($("fiat")) $("fiat").onchange = () => scheduleAdsLoad();
+  if ($("amount")) $("amount").oninput = () => scheduleAdsLoad();
+  if ($("amountUnit")) $("amountUnit").onchange = () => scheduleAdsLoad();
+  if ($("payment")) $("payment").onchange = () => scheduleAdsLoad();
+  if ($("refreshOffers")) $("refreshOffers").onclick = () => loadAds(false);
+  if ($("reset")) $("reset").onclick = () => {
+    if ($("amount")) $("amount").value = "";
+    if ($("payment")) $("payment").value = "all";
+    loadAds(false);
+  };
+
+  // Close modal button
+  document.querySelectorAll("[data-close]").forEach((btn) => {
+    btn.onclick = () => closeModal();
+  });
+
+  const loadMoreBtn = $("loadMore");
+  if (loadMoreBtn) loadMoreBtn.onclick = () => loadAds(true);
+
+  // Buy / Sell toggle tabs
+  document.querySelectorAll("[data-side]").forEach((btn) => {
+    btn.onclick = () => {
+      side = btn.dataset.side;
+      document.querySelectorAll("[data-side]").forEach((b) => b.classList.toggle("on", b === btn));
+      loadAds(false);
+    };
+  });
+
+  // Navigation bar view switcher
+  document.querySelectorAll(".nav [data-view]").forEach((item) => {
+    item.onclick = (e) => {
+      e.preventDefault();
+      setView(item.dataset.view);
+    };
+  });
+});
