@@ -281,9 +281,9 @@ function openSecurity() {
     openSignIn();
     return;
   }
-  $("modalTitle").textContent = "Account Security & Preferences";
+  $("modalTitle").textContent = "Account Security & Credentials";
   $("modalBody").innerHTML = `
-    <p class="sec-note">Manage your passwords, 2FA authenticator, and display settings.</p>
+    <p class="sec-note">Manage your passwords and 2FA authenticator settings.</p>
     <div class="summary" style="margin-bottom:12px;"><div><b>Email:</b> ${esc(authUser.email)}</div></div>
     
     <label class="label" for="oldPasswordInput">Current (Old) Password</label>
@@ -297,14 +297,9 @@ function openSecurity() {
 
     <hr style="border:0; border-top:1px solid var(--line); margin:15px 0;">
 
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
       <span style="font-size:12px; font-weight:700;">🔐 Two-Factor Authenticator (2FA)</span>
       <button class="btn small outline" id="setupAuthBtn">Configure 2FA</button>
-    </div>
-
-    <div style="display:flex; justify-content:space-between; align-items:center;">
-      <span style="font-size:12px; font-weight:700;">🌙 Dark Mode Display</span>
-      <button class="btn small dark" id="toggleDarkModeBtn">Toggle Theme</button>
     </div>
   `;
   $("modalFoot").innerHTML = `
@@ -314,10 +309,6 @@ function openSecurity() {
 
   $("setupAuthBtn").onclick = () => {
     notify("Authenticator setup initiated. Follow Supabase 2FA prompt.");
-  };
-
-  $("toggleDarkModeBtn").onclick = () => {
-    toggleDarkMode();
   };
 
   $("updatePasswordBtn").onclick = async () => {
@@ -337,7 +328,6 @@ function openSecurity() {
       return notify("New password and confirmation do not match.");
     }
 
-    // Verify current password first
     const { error: signInError } = await supabase.auth.signInWithPassword({
       email: authUser.email,
       password: oldPassword,
@@ -347,7 +337,6 @@ function openSecurity() {
       return notify("Old password verification failed: " + signInError.message);
     }
 
-    // Update to new password
     const { error: updateError } = await supabase.auth.updateUser({ password: newPassword });
     if (updateError) {
       notify(updateError.message);
@@ -691,6 +680,21 @@ window.handleInitiateTrade = handleInitiateTrade;
 
 document.addEventListener("DOMContentLoaded", () => {
   initTheme();
+
+  // Dynamically inject theme toggle button beside profile/account button in header if present
+  const profileBtn = $("profile") || $("signup") \vert{}\vert{} $("login");
+  if (profileBtn && profileBtn.parentNode && !$("headerThemeBtn")) {
+    const themeBtn = document.createElement("button");
+    themeBtn.id = "headerThemeBtn";
+    themeBtn.className = "btn small outline";
+    themeBtn.style.marginRight = "8px";
+    themeBtn.textContent = document.body.classList.contains("dark-mode") ? "☀️ Light" : "🌙 Dark";
+    themeBtn.onclick = () => {
+      toggleDarkMode();
+      themeBtn.textContent = document.body.classList.contains("dark-mode") ? "☀️ Light" : "🌙 Dark";
+    };
+    profileBtn.parentNode.insertBefore(themeBtn, profileBtn);
+  }
 
   supabase.auth.getSession().then(({ data: { session } }) => {
     updateAccount(session?.user || null);
