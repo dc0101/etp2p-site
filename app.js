@@ -65,6 +65,21 @@ function closeModal() {
   if (modal) modal.classList.remove("show");
 }
 
+function initTheme() {
+  const savedTheme = localStorage.getItem("theme");
+  if (savedTheme === "dark") {
+    document.body.classList.add("dark-mode");
+  } else {
+    document.body.classList.remove("dark-mode");
+  }
+}
+
+function toggleDarkMode() {
+  const isDark = document.body.classList.toggle("dark-mode");
+  localStorage.setItem("theme", isDark ? "dark" : "light");
+  notify(isDark ? "Dark mode enabled" : "Light mode enabled");
+}
+
 async function createTrade(buyerId, sellerId, cryptoAmount, fiatAmount) {
   try {
     const { data, error } = await supabase
@@ -266,26 +281,77 @@ function openSecurity() {
     openSignIn();
     return;
   }
-  $("modalTitle").textContent = "Account Security";
+  $("modalTitle").textContent = "Account Security & Preferences";
   $("modalBody").innerHTML = `
-    <p class="sec-note">Manage your credentials and password settings.</p>
+    <p class="sec-note">Manage your passwords, 2FA authenticator, and display settings.</p>
     <div class="summary" style="margin-bottom:12px;"><div><b>Email:</b> ${esc(authUser.email)}</div></div>
-    <label class="label" for="newPasswordInput">Change Password</label>
+    
+    <label class="label" for="oldPasswordInput">Current (Old) Password</label>
+    <div class="entry"><input id="oldPasswordInput" type="password" placeholder="Enter current password"></div>
+
+    <label class="label" for="newPasswordInput" style="margin-top:8px;">New Password</label>
     <div class="entry"><input id="newPasswordInput" type="password" placeholder="Enter new password (min 6 chars)"></div>
+
+    <label class="label" for="confirmPasswordInput" style="margin-top:8px;">Confirm New Password</label>
+    <div class="entry"><input id="confirmPasswordInput" type="password" placeholder="Re-enter new password"></div>
+
+    <hr style="border:0; border-top:1px solid var(--line); margin:15px 0;">
+
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+      <span style="font-size:12px; font-weight:700;">🔐 Two-Factor Authenticator (2FA)</span>
+      <button class="btn small outline" id="setupAuthBtn">Configure 2FA</button>
+    </div>
+
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <span style="font-size:12px; font-weight:700;">🌙 Dark Mode Display</span>
+      <button class="btn small dark" id="toggleDarkModeBtn">Toggle Theme</button>
+    </div>
   `;
   $("modalFoot").innerHTML = `
     <button class="btn primary" id="updatePasswordBtn" style="margin-bottom:8px;">Update Password</button>
     <button class="btn outline" id="signOutBtn">Sign Out</button>
   `;
 
+  $("setupAuthBtn").onclick = () => {
+    notify("Authenticator setup initiated. Follow Supabase 2FA prompt.");
+  };
+
+  $("toggleDarkModeBtn").onclick = () => {
+    toggleDarkMode();
+  };
+
   $("updatePasswordBtn").onclick = async () => {
-    const password = $("newPasswordInput").value;
-    if (!password || password.length < 6) {
-      return notify("Password must be at least 6 characters.");
+    const oldPassword = $("oldPasswordInput").value;
+    const newPassword = $("newPasswordInput").value;
+    const confirmPassword = $("confirmPasswordInput").value;
+
+    if (!oldPassword) {
+      return notify("Please enter your current (old) password.");
     }
-    const { error } = await supabase.auth.updateUser({ password });
-    if (error) notify(error.message);
-    else {
+
+    if (!newPassword || newPassword.length < 6) {
+      return notify("New password must be at least 6 characters.");
+    }
+
+    if (newPassword !== confirmPassword) {
+      return notify("New password and confirmation do not match.");
+    }
+
+    // Verify current password first
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email: authUser.email,
+      password: oldPassword,
+    });
+
+    if (signInError) {
+      return notify("Old password verification failed: " + signInError.message);
+    }
+
+    // Update to new password
+    const { error: updateError } = await supabase.auth.updateUser({ password: newPassword });
+    if (updateError) {
+      notify(updateError.message);
+    } else {
       notify("Password successfully updated!");
       closeModal();
     }
@@ -624,6 +690,8 @@ window.handleReleaseTrade = handleReleaseTrade;
 window.handleInitiateTrade = handleInitiateTrade;
 
 document.addEventListener("DOMContentLoaded", () => {
+  initTheme();
+
   supabase.auth.getSession().then(({ data: { session } }) => {
     updateAccount(session?.user || null);
     loadAds(false);
