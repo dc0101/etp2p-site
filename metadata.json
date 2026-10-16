@@ -1,0 +1,6 @@
+{
+  "name": "TrustPeer - P2P Escrow, Secure Vault & Reputation Hub",
+  "description": "Next-generation P2P trading platform featuring multi-asset secure escrow vault, trader reputation scoring, and real-time transaction tracking.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
