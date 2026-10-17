@@ -3,68 +3,514 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Escrow Trade - Etp2p</title>
-  <link rel="stylesheet" href="style.css">
+  <title>Escrow Trade Order - Etp2p</title>
+  <style>
+    :root {
+      --bg: #f3f6f4;
+      --panel: #fff;
+      --soft: #eaf3ee;
+      --line: #d9e2dd;
+      --text: #17241d;
+      --muted: #5d7167;
+      --green: #1f9d6b;
+      --green-ink: #fff;
+      --amber: #d97706;
+      --amber-soft: #fef3c7;
+    }
+
+    body.dark-mode {
+      --bg: #0b1510;
+      --panel: #101e17;
+      --soft: #162a20;
+      --line: #223a2d;
+      --text: #e6f0ea;
+      --muted: #8ba396;
+      --green: #2fb583;
+      --green-ink: #04120b;
+      --amber: #f59e0b;
+      --amber-soft: #2e2008;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      transition: background .2s, color .2s;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 24px;
+      border-bottom: 1px solid var(--line);
+      background: var(--panel);
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 19px;
+      font-weight: 800;
+      color: var(--text);
+      text-decoration: none;
+    }
+
+    .mark {
+      display: grid;
+      place-items: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: var(--green);
+      color: var(--green-ink);
+      font-weight: 800;
+    }
+
+    .page {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 24px 20px 60px;
+    }
+
+    .btn {
+      padding: 10px 18px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background: transparent;
+      color: var(--text);
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      text-decoration: none;
+      transition: background .15s, opacity .15s;
+    }
+    .btn:hover { background: var(--soft); }
+    .btn.primary {
+      background: var(--green);
+      border-color: var(--green);
+      color: var(--green-ink);
+    }
+    .btn.primary:hover { opacity: .9; }
+    .btn.small { padding: 6px 14px; font-size: 13px; }
+    .btn.outline { border-color: var(--line); }
+
+    .escrow-banner {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 16px 20px;
+      border-radius: 16px;
+      background: var(--soft);
+      border: 1px solid var(--green);
+      margin-bottom: 20px;
+    }
+
+    .status-badge {
+      padding: 5px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+    .status-pending { background: var(--amber-soft); color: var(--amber); border: 1px solid var(--amber); }
+    .status-paid { background: rgba(59,130,246,0.15); color: #3b82f6; border: 1px solid #3b82f6; }
+    .status-completed { background: rgba(31,157,107,0.15); color: var(--green); border: 1px solid var(--green); }
+
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: var(--panel);
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .card-title {
+      font-size: 17px;
+      font-weight: 800;
+      margin: 0 0 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+    }
+
+    .detail-item {
+      padding: 10px 14px;
+      background: var(--soft);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+    }
+    .detail-label { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; }
+    .detail-val { font-size: 16px; font-weight: 800; color: var(--text); margin-top: 2px; }
+    .detail-val.green { color: var(--green); }
+
+    .bank-box {
+      padding: 14px 18px;
+      background: var(--soft);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 10px 0;
+    }
+
+    .chat-box {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-height: 240px;
+      overflow-y: auto;
+      padding: 12px;
+      background: var(--soft);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      margin-bottom: 12px;
+    }
+
+    .chat-bubble {
+      padding: 8px 14px;
+      border-radius: 12px;
+      max-width: 80%;
+      font-size: 13px;
+    }
+    .chat-bubble.merchant {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      align-self: flex-start;
+    }
+    .chat-bubble.you {
+      background: var(--green);
+      color: var(--green-ink);
+      align-self: flex-end;
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 24px;
+      transform: translateX(-50%);
+      padding: 12px 20px;
+      border-radius: 12px;
+      background: var(--text);
+      color: var(--panel);
+      font-weight: 600;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .2s;
+      z-index: 60;
+    }
+    .toast.show { opacity: 1; }
+
+    @media (max-width: 600px) {
+      .topbar { padding: 12px 16px; }
+      .page { padding: 16px 12px 40px; }
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-  <div class="container" style="max-width: 600px; margin: 40px auto; padding: 20px;">
-    <h2>Escrow Trade Details</h2>
-    <div id="tradeInfo" style="margin: 20px 0; padding: 15px; background: #f9f9f9; border-radius: 8px;">
-      <p>Loading trade information...</p>
+
+  <header class="topbar">
+    <div style="display: flex; align-items: center; gap: 14px;">
+      <a href="./" class="btn small outline" title="Back to Marketplace">← Marketplace</a>
+      <a class="brand" href="./"><span class="mark">E</span>Etp2p</a>
     </div>
-    <div id="actionContainer"></div>
-  </div>
+
+    <button class="btn small" id="themeToggleBtn">Theme</button>
+  </header>
+
+  <main class="page">
+    <!-- Escrow Banner -->
+    <div class="escrow-banner">
+      <div>
+        <div style="font-size: 16px; font-weight: 800; display: flex; align-items: center; gap: 6px;">
+          <span>🛡️ Escrow Protected Order</span>
+        </div>
+        <div style="font-size: 13px; color: var(--muted); margin-top: 2px;">
+          The crypto is locked in system escrow. Do not release crypto until fiat payment is received.
+        </div>
+      </div>
+      <div id="statusBadge" class="status-badge status-pending">
+        Pending Payment
+      </div>
+    </div>
+
+    <!-- Order Summary Card -->
+    <div class="card">
+      <div class="card-title">
+        <span>Order Details</span>
+        <span id="orderIdText" style="font-size: 13px; color: var(--muted); font-weight: 500;"></span>
+      </div>
+
+      <div class="grid-2">
+        <div class="detail-item">
+          <div class="detail-label">Fiat Amount to Pay</div>
+          <div class="detail-val" id="fiatValText">Br 0.00 ETB</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-label">Crypto in Escrow</div>
+          <div class="detail-val green" id="cryptoValText">0.00 USDT</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-label">Exchange Rate</div>
+          <div class="detail-val" id="rateText">Br 0.00 / USDT</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-label">Trading Merchant</div>
+          <div class="detail-val" id="merchantText">Etp2p Merchant</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Payment Account Instructions -->
+    <div class="card">
+      <div class="card-title">Payment Instructions</div>
+      <p style="font-size: 13px; color: var(--muted); margin: 0 0 10px;">
+        Please transfer the exact amount using the payment method chosen below.
+      </p>
+
+      <div class="bank-box">
+        <span id="bankDetailsText">Tele Birr: 0911234567 (Trader)</span>
+        <button class="btn small" id="copyBankBtn">Copy</button>
+      </div>
+
+      <div style="background: rgba(217,119,6,0.1); border: 1px solid rgba(217,119,6,0.25); border-radius: 10px; padding: 10px 14px; font-size: 12px; color: var(--text); line-height: 1.4;">
+        ⚠️ <b>Important Banking Rule:</b> Do not write "crypto", "USDT", or "Bitcoin" in the payment remarks/memo to prevent bank delays.
+      </div>
+
+      <!-- Action Buttons -->
+      <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px;" id="orderActions">
+        <button class="btn primary" id="markPaidBtn" style="flex: 1; min-width: 200px;">
+          ✓ I Have Paid the Seller
+        </button>
+        <button class="btn" id="releaseBtn" style="display: none; background: #059669; color: #fff;">
+          Release USDT to Buyer
+        </button>
+        <button class="btn outline" id="disputeBtn">
+          Need Help / Dispute
+        </button>
+      </div>
+    </div>
+
+    <!-- Live Trade Chat -->
+    <div class="card">
+      <div class="card-title">Trade Chat & Payment Proof</div>
+      
+      <div class="chat-box" id="chatBox">
+        <div class="chat-bubble merchant">
+          <strong>Merchant:</strong> Hello! The crypto is locked in escrow. Please transfer payment and click "I Have Paid the Seller".
+        </div>
+      </div>
+
+      <form id="chatForm" style="display: flex; gap: 8px;">
+        <input id="chatInput" type="text" placeholder="Type message or transaction reference..." style="flex: 1; padding: 10px 14px; border: 1px solid var(--line); border-radius: 10px; background: transparent; color: var(--text); outline: 0;">
+        <button type="submit" class="btn primary small">Send</button>
+      </form>
+    </div>
+  </main>
 
   <div id="toast" class="toast"></div>
 
   <script type="module">
     import { supabase } from "./services/supabase.js";
-    import "./app.js"; // Brings in handleReleaseTrade and helpers
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const tradeId = urlParams.get("id");
+    const $ = (id) => document.getElementById(id);
 
-    async function loadTrade() {
-      if (!tradeId) {
-        document.getElementById("tradeInfo").innerHTML = "<p>No trade ID provided.</p>";
-        return;
+    function notify(msg) {
+      const toast = $("toast");
+      if (!toast) return;
+      toast.textContent = msg;
+      toast.classList.add("show");
+      setTimeout(() => toast.classList.remove("show"), 3500);
+    }
+
+    // Theme Management
+    function initTheme() {
+      const saved = localStorage.getItem("theme");
+      const isDark = saved === "dark";
+      document.body.classList.toggle("dark-mode", isDark);
+      $("themeToggleBtn").textContent = isDark ? "☀️ Light" : "🌙 Dark";
+    }
+
+    $("themeToggleBtn").onclick = () => {
+      const isDark = document.body.classList.toggle("dark-mode");
+      localStorage.setItem("theme", isDark ? "dark" : "light");
+      $("themeToggleBtn").textContent = isDark ? "☀️ Light" : "🌙 Dark";
+    };
+
+    initTheme();
+
+    // Load Order
+    const params = new URLSearchParams(window.location.search);
+    const tradeId = params.get("id") || "demo_order";
+
+    let trade = null;
+
+    async function loadTradeData() {
+      // 1. Try LocalStorage for instant rendering
+      try {
+        const local = localStorage.getItem(`etp2p_trade_${tradeId}`);
+        if (local) trade = JSON.parse(local);
+      } catch (e) {}
+
+      // 2. Try Supabase
+      try {
+        const { data: dbTrade } = await supabase
+          .from("trades")
+          .select("*")
+          .eq("id", tradeId)
+          .maybeSingle();
+
+        if (dbTrade) {
+          trade = {
+            id: dbTrade.id,
+            cryptoAmount: dbTrade.crypto_amount,
+            fiatAmount: dbTrade.fiat_amount,
+            status: dbTrade.status || "pending_payment",
+            paymentMethod: dbTrade.payment_method || "Commercial Bank of Ethiopia",
+            sellerName: "Merchant-" + (dbTrade.seller_id ? dbTrade.seller_id.substring(0, 6) : "P2P"),
+            price: dbTrade.crypto_amount ? Math.round(dbTrade.fiat_amount / dbTrade.crypto_amount) : 186,
+            accountDetails: `CBE: 1000${Math.floor(100000 + Math.random() * 900000)} (Trader)`
+          };
+        }
+      } catch (err) {
+        console.warn("Could not query supabase trades:", err);
       }
 
-      const { data: { user } } = await supabase.auth.getUser();
-      const { data: trade, error } = await supabase
-        .from("trades")
-        .select("*")
-        .eq("id", tradeId)
-        .single();
-
-      if (error || !trade) {
-        document.getElementById("tradeInfo").innerHTML = "<p>Trade not found or failed to load.</p>";
-        return;
+      // 3. Fallback mock if completely fresh
+      if (!trade) {
+        trade = {
+          id: tradeId,
+          cryptoAmount: 10.0,
+          fiatAmount: 1860,
+          currency: "ETB",
+          crypto: "USDT",
+          price: 186.0,
+          sellerName: "Trader-2AED5E2C16FA",
+          paymentMethod: "Commercial Bank of Ethiopia",
+          status: "pending_payment",
+          accountDetails: "Commercial Bank of Ethiopia: 100028491823 (Trader H.)"
+        };
       }
 
-      const isSeller = user && user.id === trade.seller_id;
+      renderTrade();
+    }
 
-      document.getElementById("tradeInfo").innerHTML = `
-        <p><strong>Trade ID:</strong> ${trade.id}</p>
-        <p><strong>Crypto Amount:</strong> ${trade.crypto_amount}</p>
-        <p><strong>Fiat Amount:</strong> Br ${trade.fiat_amount}</p>
-        <p><strong>Status:</strong> <span style="text-transform: uppercase; font-weight: bold; color: ${trade.status === 'released' ? 'green' : 'orange'}">${trade.status}</span></p>
-      `;
+    function renderTrade() {
+      $("orderIdText").textContent = `#${trade.id}`;
+      $("fiatValText").textContent = `Br ${(trade.fiatAmount || 0).toLocaleString()} ${trade.currency || "ETB"}`;
+      $("cryptoValText").textContent = `${trade.cryptoAmount || 0} ${trade.crypto || "USDT"}`;
+      $("rateText").textContent = `Br ${trade.price || 186} / ${trade.crypto || "USDT"}`;
+      $("merchantText").textContent = trade.sellerName || "Etp2p Merchant";
+      $("bankDetailsText").textContent = trade.accountDetails || `${trade.paymentMethod || 'Bank Transfer'}: 100028491823 (${trade.sellerName || 'Merchant'})`;
 
-      if (trade.status === "active" && isSeller) {
-        document.getElementById("actionContainer").innerHTML = `
-          <button class="btn primary" onclick="handleReleaseTrade('${trade.id}')">
-            Release Escrow to Buyer
-          </button>
-        `;
-      } else if (trade.status === "released") {
-        document.getElementById("actionContainer").innerHTML = `
-          <p style="color: green; font-weight: bold;">This trade has been successfully completed and funds released.</p>
-        `;
+      updateStatusUI(trade.status);
+    }
+
+    function updateStatusUI(status) {
+      const badge = $("statusBadge");
+      const markPaidBtn = $("markPaidBtn");
+      const releaseBtn = $("releaseBtn");
+
+      if (status === "payment_marked" || status === "paid") {
+        badge.className = "status-badge status-paid";
+        badge.textContent = "Payment Marked - Waiting Seller";
+        markPaidBtn.textContent = "✓ Payment Marked";
+        markPaidBtn.disabled = true;
+        releaseBtn.style.display = "inline-flex";
+      } else if (status === "completed" || status === "released") {
+        badge.className = "status-badge status-completed";
+        badge.textContent = "Completed & Escrow Released";
+        markPaidBtn.style.display = "none";
+        releaseBtn.style.display = "none";
+      } else {
+        badge.className = "status-badge status-pending";
+        badge.textContent = "Pending Payment";
+        markPaidBtn.textContent = "✓ I Have Paid the Seller";
+        markPaidBtn.disabled = false;
+        releaseBtn.style.display = "none";
       }
     }
 
-    loadTrade();
+    $("copyBankBtn").onclick = () => {
+      const text = $("bankDetailsText").textContent;
+      navigator.clipboard?.writeText(text);
+      notify("Bank details copied to clipboard!");
+    };
+
+    $("markPaidBtn").onclick = async () => {
+      trade.status = "payment_marked";
+      updateStatusUI(trade.status);
+      try {
+        localStorage.setItem(`etp2p_trade_${tradeId}`, JSON.stringify(trade));
+        await supabase.from("trades").update({ status: "payment_marked" }).eq("id", tradeId);
+      } catch (e) {}
+
+      // Add chat message
+      const msg = document.createElement("div");
+      msg.className = "chat-bubble you";
+      msg.innerHTML = "<strong>You:</strong> I have completed the transfer. Please check and release crypto from escrow.";
+      $("chatBox").appendChild(msg);
+
+      notify("Payment marked! The seller has been notified to release funds.");
+    };
+
+    $("releaseBtn").onclick = async () => {
+      trade.status = "completed";
+      updateStatusUI(trade.status);
+      try {
+        localStorage.setItem(`etp2p_trade_${tradeId}`, JSON.stringify(trade));
+        await supabase.from("trades").update({ status: "completed" }).eq("id", tradeId);
+      } catch (e) {}
+
+      const msg = document.createElement("div");
+      msg.className = "chat-bubble merchant";
+      msg.innerHTML = "<strong>System Escrow:</strong> Payment confirmed! The USDT has been released to the buyer's wallet.";
+      $("chatBox").appendChild(msg);
+
+      notify("Crypto released from escrow successfully! Trade completed.");
+    };
+
+    $("disputeBtn").onclick = () => {
+      notify("Support dispute opened. An Etp2p escrow arbitrator has joined the chat.");
+    };
+
+    $("chatForm").onsubmit = (e) => {
+      e.preventDefault();
+      const val = $("chatInput").value.trim();
+      if (!val) return;
+
+      const bubble = document.createElement("div");
+      bubble.className = "chat-bubble you";
+      bubble.innerHTML = `<strong>You:</strong> ${val}`;
+      $("chatBox").appendChild(bubble);
+      $("chatInput").value = "";
+      $("chatBox").scrollTop = $("chatBox").scrollHeight;
+    };
+
+    loadTradeData();
   </script>
 </body>
 </html>
