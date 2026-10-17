@@ -5,8 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Etp2p - P2P crypto marketplace</title>
   <style>
-    :root { --bg:#f3f6f4; --panel:#fff; --soft:#eaf3ee; --line:#d9e2dd; --text:#17241d; --muted:#5d7167; --green:#1f9d6b; --green-ink:#fff; }
-    body.dark-mode { --bg:#0b1510; --panel:#101e17; --soft:#162a20; --line:#223a2d; --text:#e6f0ea; --muted:#8ba396; --green:#2fb583; --green-ink:#04120b; }
+    :root {
+      --bg:#f3f6f4; --panel:#fff; --soft:#eaf3ee; --line:#d9e2dd; --text:#17241d; --muted:#5d7167; --green:#1f9d6b; --green-ink:#fff;
+      --sidebar-bg:#fff; --sidebar-text:#17241d; --sidebar-muted:#5d7167; --sidebar-hover:#eaf3ee; --sidebar-active-bg:#dcefe5; --sidebar-active-text:#17241d; --sidebar-border:#d9e2dd; --sidebar-avatar-bg:#eaf3ee; --sidebar-avatar-text:#17241d;
+    }
+    body.dark-mode {
+      --bg:#0b1510; --panel:#101e17; --soft:#162a20; --line:#223a2d; --text:#e6f0ea; --muted:#8ba396; --green:#2fb583; --green-ink:#04120b;
+      --sidebar-bg:#0d1913; --sidebar-text:#cfe0d6; --sidebar-muted:#8ba396; --sidebar-hover:rgba(255,255,255,.07); --sidebar-active-bg:rgba(47,181,131,.16); --sidebar-active-text:#fff; --sidebar-border:#223a2d; --sidebar-avatar-bg:#1b3326; --sidebar-avatar-text:#fff;
+    }
     * { box-sizing:border-box; }
     body { margin:0; background:var(--bg); color:var(--text); font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; }
     button,input,select { font:inherit; color:inherit; }
@@ -39,20 +45,20 @@
 
     /* Sidebar */
     .shell { display:flex; min-height:100vh; }
-    .sidebar { width:248px; flex:none; position:sticky; top:0; height:100vh; overflow-y:auto; display:flex; flex-direction:column; gap:14px; padding:18px 12px; background:#0d1913; color:#cfe0d6; }
-    .sidebar .brand { padding:0 8px; color:#fff; }
+    .sidebar { width:248px; flex:none; position:sticky; top:0; height:100vh; overflow-y:auto; display:flex; flex-direction:column; gap:14px; padding:18px 12px; background:var(--sidebar-bg); color:var(--sidebar-text); }
+    .sidebar .brand { padding:0 8px; color:var(--sidebar-text); }
     body.side-closed .sidebar { display:none; }
     .nav { flex:1; display:flex; flex-direction:column; gap:2px; }
-    .group { margin:14px 8px 6px; font-size:11px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:#6f8a7b; }
-    .nav a, .nav button { display:flex; align-items:center; gap:12px; width:100%; padding:10px 12px; border:0; border-radius:10px; background:transparent; color:#cfe0d6; font-weight:600; text-align:left; text-decoration:none; cursor:pointer; }
-    .nav a:hover, .nav button:hover { background:rgba(255,255,255,.07); }
-    .nav a.active { background:rgba(47,181,131,.16); color:#fff; }
+    .group { margin:14px 8px 6px; font-size:11px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--sidebar-muted); }
+    .nav a, .nav button { display:flex; align-items:center; gap:12px; width:100%; padding:10px 12px; border:0; border-radius:10px; background:transparent; color:var(--sidebar-text); font-weight:600; text-align:left; text-decoration:none; cursor:pointer; }
+    .nav a:hover, .nav button:hover { background:var(--sidebar-hover); }
+    .nav a.active { background:var(--sidebar-active-bg); color:var(--sidebar-active-text); }
     .sidebar .btn.primary { width:100%; background:#2fb583; border-color:#2fb583; color:#04120b; }
-    .usercard { display:flex; align-items:center; gap:10px; padding:10px; border:1px solid #223a2d; border-radius:12px; }
-    .avatar { display:grid; place-items:center; width:34px; height:34px; flex:none; border-radius:50%; background:#1b3326; color:#fff; font-weight:800; }
+    .usercard { display:flex; align-items:center; gap:10px; padding:10px; border:1px solid var(--sidebar-border); border-radius:12px; }
+    .avatar { display:grid; place-items:center; width:34px; height:34px; flex:none; border-radius:50%; background:var(--sidebar-avatar-bg); color:var(--sidebar-avatar-text); font-weight:800; }
     .usercard-text { min-width:0; flex:1; }
-    .usercard-text b { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:#fff; font-size:13px; }
-    .usercard-text button { padding:0; border:0; background:transparent; color:#8ba396; font-size:12px; text-decoration:underline; cursor:pointer; }
+    .usercard-text b { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--sidebar-text); font-size:13px; }
+    .usercard-text button { padding:0; border:0; background:transparent; color:var(--sidebar-muted); font-size:12px; text-decoration:underline; cursor:pointer; }
 
     .content { flex:1; min-width:0; }
     .topbar { display:flex; align-items:center; gap:12px; padding:10px 20px; border-bottom:1px solid var(--line); background:var(--panel); }
