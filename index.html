@@ -39,20 +39,33 @@
 
     /* Sidebar */
     .shell { display:flex; min-height:100vh; }
-    .sidebar { width:248px; flex:none; position:sticky; top:0; height:100vh; overflow-y:auto; display:flex; flex-direction:column; gap:14px; padding:18px 12px; background:#0d1913; color:#cfe0d6; }
-    .sidebar .brand { padding:0 8px; color:#fff; }
+    .sidebar { width:248px; flex:none; position:sticky; top:0; height:100vh; overflow-y:auto; display:flex; flex-direction:column; gap:14px; padding:18px 12px; background:var(--panel); color:var(--text); border-right:1px solid var(--line); transition:background .2s, color .2s, border-color .2s; }
+    .sidebar .brand { padding:0 8px; color:var(--text); }
     body.side-closed .sidebar { display:none; }
     .nav { flex:1; display:flex; flex-direction:column; gap:2px; }
-    .group { margin:14px 8px 6px; font-size:11px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:#6f8a7b; }
-    .nav a, .nav button { display:flex; align-items:center; gap:12px; width:100%; padding:10px 12px; border:0; border-radius:10px; background:transparent; color:#cfe0d6; font-weight:600; text-align:left; text-decoration:none; cursor:pointer; }
-    .nav a:hover, .nav button:hover { background:rgba(255,255,255,.07); }
-    .nav a.active { background:rgba(47,181,131,.16); color:#fff; }
-    .sidebar .btn.primary { width:100%; background:#2fb583; border-color:#2fb583; color:#04120b; }
-    .usercard { display:flex; align-items:center; gap:10px; padding:10px; border:1px solid #223a2d; border-radius:12px; }
-    .avatar { display:grid; place-items:center; width:34px; height:34px; flex:none; border-radius:50%; background:#1b3326; color:#fff; font-weight:800; }
+    .group { margin:14px 8px 6px; font-size:11px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); }
+    .nav a, .nav button { display:flex; align-items:center; gap:12px; width:100%; padding:10px 12px; border:0; border-radius:10px; background:transparent; color:var(--text); font-weight:600; text-align:left; text-decoration:none; cursor:pointer; transition:background .15s; }
+    .nav a:hover, .nav button:hover { background:var(--soft); }
+    .nav a.active { background:var(--soft); color:var(--green); font-weight:700; }
+    .sidebar .btn.primary { width:100%; background:var(--green); border-color:var(--green); color:var(--green-ink); }
+    .usercard { display:flex; align-items:center; gap:10px; padding:10px; border:1px solid var(--line); border-radius:12px; background:var(--soft); }
+    .avatar { display:grid; place-items:center; width:34px; height:34px; flex:none; border-radius:50%; background:var(--green); color:var(--green-ink); font-weight:800; }
     .usercard-text { min-width:0; flex:1; }
-    .usercard-text b { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:#fff; font-size:13px; }
-    .usercard-text button { padding:0; border:0; background:transparent; color:#8ba396; font-size:12px; text-decoration:underline; cursor:pointer; }
+    .usercard-text b { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--text); font-size:13px; }
+    .usercard-text button { padding:0; border:0; background:transparent; color:var(--muted); font-size:12px; text-decoration:underline; cursor:pointer; }
+
+    /* Dark Mode Sidebar Overrides */
+    body.dark-mode .sidebar { background:#0d1913; color:#cfe0d6; border-right:1px solid #223a2d; }
+    body.dark-mode .sidebar .brand { color:#fff; }
+    body.dark-mode .group { color:#6f8a7b; }
+    body.dark-mode .nav a, body.dark-mode .nav button { color:#cfe0d6; }
+    body.dark-mode .nav a:hover, body.dark-mode .nav button:hover { background:rgba(255,255,255,.07); }
+    body.dark-mode .nav a.active { background:rgba(47,181,131,.16); color:#fff; }
+    body.dark-mode .sidebar .btn.primary { background:#2fb583; border-color:#2fb583; color:#04120b; }
+    body.dark-mode .usercard { border:1px solid #223a2d; background:transparent; }
+    body.dark-mode .avatar { background:#1b3326; color:#fff; }
+    body.dark-mode .usercard-text b { color:#fff; }
+    body.dark-mode .usercard-text button { color:#8ba396; }
 
     .content { flex:1; min-width:0; }
     .topbar { display:flex; align-items:center; gap:12px; padding:10px 20px; border-bottom:1px solid var(--line); background:var(--panel); }

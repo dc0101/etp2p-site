@@ -173,9 +173,7 @@ function openSignUp() {
           address: address
         });
       }
-      notify("Account created successfully! Please sign in.");
-      closeModal();
-      openSignIn();
+      showVerificationStep(email);
     }
   };
 
@@ -347,6 +345,46 @@ function openSecurity() {
   $("modal").classList.add("show");
 }
 
+function showVerificationStep(email) {
+  $("modalTitle").textContent = "Check your email for verify link";
+  $("modalBody").innerHTML = `
+    <div style="text-align:center; padding:10px 0;">
+      <div style="width:52px; height:52px; border-radius:50%; background:var(--soft); display:grid; place-items:center; margin:0 auto 12px; font-size:24px;">✉️</div>
+      <p style="font-size:16px; font-weight:800; margin:0 0 6px; color:var(--text);">Check your email for verify link</p>
+      <p class="sec-note" style="margin-bottom:14px; font-size:13px; line-height:1.5;">We have sent an activation link to <b>${esc(email)}</b>. Please click the verify link in that email to activate your account.</p>
+      <div style="background:rgba(217,119,6,0.12); border:1px solid rgba(217,119,6,0.3); border-radius:12px; padding:12px 14px; text-align:left; font-size:12px; color:var(--text); line-height:1.5;">
+        ⚠️ <b>Important:</b> Please check your email for verify link and <b>check your spam if you did not find it</b>.
+      </div>
+    </div>
+  `;
+  $("modalFoot").innerHTML = `
+    <button class="btn primary" id="verifyGoSignInBtn" style="margin-bottom:8px;">Go to Sign In</button>
+    <button class="btn outline" id="resendVerifyLinkBtn">Resend verification email</button>
+  `;
+  $("verifyGoSignInBtn").onclick = () => {
+    openSignIn();
+    const emailField = $("emailInput");
+    if (emailField) emailField.value = email;
+  };
+  $("resendVerifyLinkBtn").onclick = async () => {
+    try {
+      const { error: resendErr } = await supabase.auth.resend({
+        type: 'signup',
+        email: email,
+        options: { emailRedirectTo: AUTH_REDIRECT }
+      });
+      if (resendErr) {
+        notify(resendErr.message);
+      } else {
+        notify("Verification link resent! Check your spam if you did not find it.");
+      }
+    } catch (e) {
+      notify("Verification link requested! Check your spam if you did not find it.");
+    }
+  };
+  $("modal").classList.add("show");
+}
+
 function openSignIn() {
   $("modalTitle").textContent = "Sign in to Etp2p";
   $("modalBody").innerHTML = `
@@ -368,12 +406,19 @@ function openSignIn() {
   
   $("loginWithPasswordBtn").onclick = async () => {
     const email = $("emailInput").value.trim();
-    const password = $("emailInput").value;
+    const password = $("passwordInput").value;
     if (!email || !password) return notify("Please enter email and password.");
     
     const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) notify(error.message);
-    else {
+    if (error) {
+      const msg = (error.message || "").toLowerCase();
+      if (msg.includes("email not confirmed") || msg.includes("not verified")) {
+        notify("Please check your email for verify link and check your spam if you did not find it.");
+        showVerificationStep(email);
+      } else {
+        notify(error.message);
+      }
+    } else {
       notify("Signed in successfully!");
       closeModal();
     }
