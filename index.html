@@ -1,18 +1,284 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>TrustPeer - P2P Escrow, Secure Vault &amp; Reputation Hub</title>
-    <meta name="description" content="Next-generation P2P trading platform featuring multi-asset secure escrow vault, trader reputation scoring, and real-time transaction tracking." />
-    <meta property="og:title" content="TrustPeer - P2P Escrow, Secure Vault &amp; Reputation Hub" />
-    <meta property="og:description" content="Next-generation P2P trading platform featuring multi-asset secure escrow vault, trader reputation scoring, and real-time transaction tracking." />
-    <meta property="og:type" content="website" />
-    <meta name="twitter:card" content="summary_large_image" />
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
-</html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Etp2p - P2P crypto marketplace</title>
+  <style>
+    :root {
+      --bg: #f3f6f4; --panel: #ffffff; --soft: #eaf3ee; --line: #d9e2dd;
+      --text: #17241d; --muted: #5d7167; --green: #1f9d6b; --green-ink: #ffffff;
+    }
+    body.dark-mode {
+      --bg: #0b1510; --panel: #101e17; --soft: #162a20; --line: #223a2d;
+      --text: #e6f0ea; --muted: #8ba396; --green: #2fb583; --green-ink: #04120b;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+    button, input, select { font: inherit; color: inherit; }
+    select, input { background: transparent; }
+    option { background: var(--panel); color: var(--text); }
+    .hide { display: none !important; }
+    .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+    :focus-visible { outline: 3px solid var(--green); outline-offset: 2px; }
 
+    /* Header */
+    .bar { border-bottom: 1px solid var(--line); background: var(--panel); }
+    .bar-in { max-width: 1180px; margin: 0 auto; padding: 12px 20px; display: flex; align-items: center; gap: 24px; flex-wrap: wrap; }
+    .brand { display: flex; align-items: center; gap: 10px; font-size: 20px; font-weight: 800; color: inherit; text-decoration: none; }
+    .mark { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 8px; background: var(--green); color: var(--green-ink); }
+    .nav { display: flex; gap: 6px; }
+    .nav a { padding: 6px 12px; border-radius: 8px; color: var(--muted); font-weight: 700; text-decoration: none; }
+    .nav a:hover { color: var(--text); }
+    .nav a.active { color: var(--text); background: var(--soft); }
+    .bar-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+    body.signed-in .guest-only { display: none; }
+    body:not(.signed-in) .user-menu { display: none; }
+
+    /* Buttons */
+    .btn { padding: 10px 18px; border-radius: 10px; border: 1px solid var(--line); background: transparent; font-weight: 700; cursor: pointer; }
+    .btn.small { padding: 7px 14px; font-size: 14px; }
+    .btn.primary { background: var(--green); border-color: var(--green); color: var(--green-ink); }
+    .btn.dark { background: var(--text); border-color: var(--text); color: var(--panel); }
+    .btn:disabled { opacity: .55; cursor: not-allowed; }
+    .chip { padding: 7px 12px; border-radius: 999px; border: 1px solid var(--line); background: transparent; font-size: 14px; font-weight: 600; cursor: pointer; }
+
+    /* Account menu */
+    .user-menu { position: relative; }
+    .avatar { width: 36px; height: 36px; border-radius: 50%; border: 2px solid var(--line); background: var(--soft); font-weight: 800; cursor: pointer; }
+    .menu { position: absolute; right: 0; top: calc(100% + 8px); min-width: 220px; padding: 6px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); box-shadow: 0 10px 30px rgba(0, 0, 0, .25); z-index: 20; }
+    .menu[hidden] { display: none; }
+    .menu-email { padding: 8px 10px; color: var(--muted); font-size: 13px; overflow-wrap: anywhere; border-bottom: 1px solid var(--line); margin-bottom: 4px; }
+    .menu button { display: block; width: 100%; padding: 9px 10px; border: 0; border-radius: 8px; background: transparent; text-align: left; font-weight: 600; cursor: pointer; }
+    .menu button:hover { background: var(--soft); }
+
+    /* Page */
+    .page { max-width: 1180px; margin: 0 auto; padding: 28px 20px 60px; }
+    .intro { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 20px; }
+    h1 { margin: 0; font-size: 34px; line-height: 1.15; }
+    #subtitle { margin: 6px 0 0; color: var(--muted); }
+    .intro-actions { display: flex; gap: 10px; }
+    .note-card { margin-bottom: 20px; padding: 14px 18px; border: 1px solid var(--line); border-radius: 14px; background: var(--panel); font-weight: 700; }
+    .note-card small { display: block; color: var(--muted); font-weight: 400; }
+    .panel { border: 1px solid var(--line); border-radius: 16px; background: var(--panel); padding: 20px; }
+    #orders { display: none; }
+    #orders.show { display: block; }
+    .panel-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+    h2 { margin: 0; font-size: 22px; }
+    .badge { padding: 4px 12px; border-radius: 999px; background: var(--soft); border: 1px solid var(--green); font-size: 13px; font-weight: 700; }
+
+    /* Filters */
+    .filters { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
+    .seg { display: flex; padding: 4px; border: 1px solid var(--line); border-radius: 12px; background: var(--soft); }
+    .seg button { padding: 8px 18px; border: 0; border-radius: 9px; background: transparent; font-weight: 700; color: var(--muted); cursor: pointer; }
+    .seg button.on { background: var(--green); color: var(--green-ink); }
+    .f { display: flex; align-items: center; gap: 8px; padding: 6px 12px; border: 1px solid var(--line); border-radius: 12px; }
+    .f > span { color: var(--muted); font-size: 13px; }
+    .f select, .f input { border: 0; outline: 0; font-weight: 700; }
+    .f input { width: 90px; }
+    .f:focus-within { border-color: var(--green); }
+    .icon-btn { width: 44px; border: 1px solid var(--line); border-radius: 12px; background: transparent; font-size: 18px; cursor: pointer; margin-left: auto; }
+
+    /* Offers table */
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; min-width: 760px; }
+    th { padding: 10px 12px; text-align: left; color: var(--muted); font-size: 13px; font-weight: 600; border-bottom: 1px solid var(--line); }
+    td { padding: 16px 12px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+    tbody tr[data-row-offer] { cursor: pointer; }
+    tbody tr[data-row-offer]:hover { background: var(--soft); }
+    .merchant { display: flex; align-items: center; gap: 12px; }
+    .micon { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: var(--soft); border: 1px solid var(--line); font-weight: 800; }
+    .mname { font-weight: 700; }
+    .meta, small { color: var(--muted); font-size: 12px; }
+    .price { font-size: 20px; font-weight: 800; }
+    .limit { font-weight: 700; }
+    .pays { display: flex; flex-wrap: wrap; gap: 6px; max-width: 330px; }
+    .pay { padding: 2px 8px; border-radius: 6px; border: 1px solid var(--line); background: var(--soft); color: var(--green); font-size: 12px; font-weight: 600; }
+    .rate { font-weight: 700; }
+    .rate small { display: block; font-weight: 400; }
+    .empty { padding: 36px 12px; text-align: center; color: var(--muted); }
+    .empty strong { display: block; color: var(--text); }
+    .panel-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-top: 14px; color: var(--muted); font-size: 14px; }
+    #dbStatus { padding: 2px 10px; border-radius: 999px; background: #eaf3ee; font-size: 12px; font-weight: 700; }
+    #loadMore { display: block; margin: 14px auto 0; }
+    #loadMore[hidden] { display: none; }
+
+    /* Dialog + toast */
+    .modal { position: fixed; inset: 0; z-index: 50; display: none; place-items: center; padding: 16px; background: rgba(0, 0, 0, .6); }
+    .modal.show { display: grid; }
+    .sheet { width: min(440px, 100%); max-height: 90vh; overflow-y: auto; padding: 20px; border: 1px solid var(--line); border-radius: 16px; background: var(--panel); }
+    .sheet-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+    .sheet-head h2 { font-size: 19px; }
+    .x { width: 32px; height: 32px; border: 0; border-radius: 8px; background: transparent; font-size: 22px; line-height: 1; cursor: pointer; }
+    .x:hover { background: var(--soft); }
+    .sec-note { margin: 0 0 12px; color: var(--muted); font-size: 13px; }
+    .hint { color: var(--muted); font-size: 12px; }
+    .label { display: block; margin: 12px 0 4px; font-size: 12px; font-weight: 700; }
+    .entry { padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; }
+    .entry:focus-within { border-color: var(--green); }
+    .entry input { width: 100%; border: 0; outline: 0; }
+    .summary { padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--soft); font-size: 13px; }
+    .sheet-foot { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }
+    .sheet-foot .btn { width: 100%; }
+    .toast { position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%); max-width: calc(100% - 32px); padding: 12px 18px; border-radius: 10px; background: var(--text); color: var(--panel); font-weight: 600; opacity: 0; pointer-events: none; transition: opacity .2s; z-index: 60; }
+    .toast.show { opacity: 1; }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <header class="bar">
+    <div class="bar-in">
+      <a class="brand" href="./"><span class="mark">E</span>Etp2p</a>
+      <nav class="nav" aria-label="Main">
+        <a href="#" data-view="market" class="active">P2P</a>
+        <a href="#" data-view="orders">Orders</a>
+        <a href="#" data-view="ads">My ads</a>
+      </nav>
+      <div class="bar-right">
+        <button class="btn small guest-only" id="login">Sign in</button>
+        <button class="btn small primary guest-only" id="signup">Sign up</button>
+        <button class="chip" id="themeToggleBtn">Light</button>
+        <div class="user-menu">
+          <button class="avatar" id="avatarBtn" aria-haspopup="menu" aria-expanded="false" aria-label="Account menu"><span id="avatarLetter">?</span></button>
+          <div class="menu" id="userMenu" role="menu" hidden>
+            <div class="menu-email" id="menuEmail"></div>
+            <button role="menuitem" id="menuProfile">Profile</button>
+            <button role="menuitem" id="menuAccount">Account</button>
+            <button role="menuitem" id="security">Security</button>
+            <button role="menuitem" id="menuSignOut">Sign out</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="page">
+    <section class="intro">
+      <div>
+        <h1 id="title">Buy and sell crypto, your way.</h1>
+        <p id="subtitle">Offers from Etp2p users, shared through Supabase.</p>
+      </div>
+      <div class="intro-actions">
+        <button class="btn" id="how">How P2P works</button>
+        <button class="btn primary" id="post">+ Post an ad</button>
+      </div>
+    </section>
+
+    <div class="note-card"><small>Account protection</small>Authenticator for ads &amp; order updates</div>
+
+    <section class="panel" id="market">
+      <div class="panel-head">
+        <h2>Find your offer</h2>
+        <span class="badge">Database escrow protected</span>
+      </div>
+      <div class="filters">
+        <div class="seg" role="group" aria-label="Trade side">
+          <button class="on" data-side="buy">Buy</button>
+          <button data-side="sell">Sell</button>
+        </div>
+        <label class="f"><span>Asset</span><select id="coin"><option value="USDT">USDT</option></select></label>
+        <label class="f"><span>With</span>
+          <select id="fiat"><option value="ETB">Birr (ETB)</option><option value="USD">US Dollar (USD)</option></select>
+        </label>
+        <label class="f"><span>Amount</span>
+          <input id="amount" type="number" min="0" step="any" placeholder="Any">
+          <select id="amountUnit"><option value="fiat">ETB</option><option value="crypto">USDT</option></select>
+        </label>
+        <label class="f"><span>Pay with</span>
+          <select id="payment">
+            <option value="all">Any method</option>
+            <option>Commercial Bank of Ethiopia</option>
+            <option>Tele Birr</option>
+            <option>CBE Birr</option>
+            <option>Bank of Abyssinia</option>
+            <option>Awash Bank</option>
+            <option>Dashen Bank</option>
+          </select>
+        </label>
+        <button class="icon-btn" id="reset" title="Reset filters" aria-label="Reset filters">↺</button>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Advertiser</th><th>Rate</th><th>Available / limit</th><th>Payment</th><th>Merchant history</th><th><span class="sr">Action</span></th>
+            </tr>
+          </thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+
+      <div class="panel-foot">
+        <span>Showing <span id="count">0</span> offers</span>
+        <span id="dbStatus"></span>
+        <button class="btn small" id="refreshOffers">Refresh offers</button>
+      </div>
+      <button class="btn" id="loadMore" hidden>Load more</button>
+    </section>
+
+    <section class="panel" id="orders">
+      <div class="empty"><strong>Nothing to show here yet</strong>Each order opens on its own escrow page as soon as you start a trade.</div>
+    </section>
+  </main>
+
+  <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="sheet">
+      <div class="sheet-head"><h2 id="modalTitle"></h2><button class="x" data-close aria-label="Close">×</button></div>
+      <div id="modalBody"></div>
+      <div class="sheet-foot" id="modalFoot"></div>
+    </div>
+  </div>
+  <div class="toast" id="toast" role="status"></div>
+
+  <script type="module" src="./app.js"></script>
+  <script type="module">
+    // Account menu: shown only while signed in. Profile and Security reuse the dialogs in app.js.
+    import { supabase } from "./services/supabase.js";
+
+    const $ = (id) => document.getElementById(id);
+    const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    let currentUser = null;
+
+    function openMenu() { $("userMenu").hidden = false; $("avatarBtn").setAttribute("aria-expanded", "true"); }
+    function closeMenu() { $("userMenu").hidden = true; $("avatarBtn").setAttribute("aria-expanded", "false"); }
+
+    function setUser(user) {
+      currentUser = user || null;
+      document.body.classList.toggle("signed-in", Boolean(currentUser));
+      $("avatarLetter").textContent = (currentUser?.email || "?").slice(0, 1).toUpperCase();
+      $("menuEmail").textContent = currentUser?.email || "";
+      closeMenu();
+    }
+
+    function openAccount() {
+      if (!currentUser) return;
+      const since = currentUser.created_at ? new Date(currentUser.created_at).toLocaleDateString() : "Unknown";
+      $("modalTitle").textContent = "Account";
+      $("modalBody").innerHTML =
+        '<div class="summary" style="margin-bottom:8px;"><b>Email:</b> ' + esc(currentUser.email) + "</div>" +
+        '<div class="summary" style="margin-bottom:8px;"><b>Member since:</b> ' + esc(since) + "</div>" +
+        '<p class="hint">Change your password or set up two-factor authentication under Security.</p>';
+      $("modalFoot").innerHTML = '<button class="btn" id="accountSignOut">Sign out</button>';
+      $("accountSignOut").onclick = signOut;
+      $("modal").classList.add("show");
+    }
+
+    async function signOut() {
+      await supabase.auth.signOut();
+      location.reload();
+    }
+
+    $("avatarBtn").onclick = (event) => { event.stopPropagation(); $("userMenu").hidden ? openMenu() : closeMenu(); };
+    document.addEventListener("click", (event) => { if (!event.target.closest(".user-menu")) closeMenu(); });
+    document.addEventListener("keydown", (event) => { if (event.key === "Escape") closeMenu(); });
+    $("menuProfile").onclick = () => { closeMenu(); $("signup").click(); };
+    $("menuAccount").onclick = () => { closeMenu(); openAccount(); };
+    $("security").addEventListener("click", closeMenu);
+    $("menuSignOut").onclick = signOut;
+
+    supabase.auth.getSession().then(({ data: { session } }) => setUser(session?.user));
+    supabase.auth.onAuthStateChange((_event, session) => setUser(session?.user));
+  </script>
+</body>
+</html>
