@@ -57,6 +57,17 @@ function closeModal() {
   if (modal) modal.classList.remove("show");
 }
 
+function showEmailVerificationStep(email) {
+  $("modalTitle").textContent = "Check your email";
+  $("modalBody").innerHTML = `
+    <p class="sec-note">We sent a verification link to <strong>${esc(email)}</strong>.</p>
+    <p class="sec-note">Open the link in that email to finish setting up your account. If you do not see it within a few minutes, check your spam or junk folder.</p>
+  `;
+  $("modalFoot").innerHTML = `<button class="btn primary" id="backToSignIn">Back to sign in</button>`;
+  $("backToSignIn").onclick = openSignIn;
+  $("modal").classList.add("show");
+}
+
 function initTheme() {
   const savedTheme = localStorage.getItem("theme");
   if (savedTheme === "dark") {
@@ -151,6 +162,7 @@ function openSignUp() {
       email,
       password,
       options: {
+        emailRedirectTo: AUTH_REDIRECT,
         data: {
           full_name: fullName,
           country: country,
@@ -173,9 +185,12 @@ function openSignUp() {
           address: address
         });
       }
-      notify("Account created successfully! Please sign in.");
-      closeModal();
-      openSignIn();
+      if (data.session) {
+        notify("Account created and signed in successfully!");
+        closeModal();
+      } else {
+        showEmailVerificationStep(email);
+      }
     }
   };
 
@@ -368,7 +383,7 @@ function openSignIn() {
   
   $("loginWithPasswordBtn").onclick = async () => {
     const email = $("emailInput").value.trim();
-    const password = $("emailInput").value;
+    const password = $("passwordInput").value;
     if (!email || !password) return notify("Please enter email and password.");
     
     const { error } = await supabase.auth.signInWithPassword({ email, password });
