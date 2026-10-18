@@ -2,6 +2,9 @@ import {
   supabase,
   listAds,
   listProfiles,
+  createAd,
+  updateAd,
+  listMyAds,
 } from "./services/supabase.js";
 
 "use strict";
@@ -508,6 +511,176 @@ function openSecurity() {
   $("modal").classList.add("show");
 }
 
+const REMOVED_ADS_KEY = "etp2p_removed_ads_v1";
+
+function getRemovedAdIds() {
+  try {
+    const raw = localStorage.getItem(REMOVED_ADS_KEY);
+    const arr = raw ? JSON.parse(raw) : [];
+    return new Set(["2dc20430-5102-40d8-8590-6e73f679b3c3", ...arr]);
+  } catch {
+    return new Set(["2dc20430-5102-40d8-8590-6e73f679b3c3"]);
+  }
+}
+
+function removeAdLocally(id) {
+  try {
+    const set = getRemovedAdIds();
+    if (id) set.add(id);
+    localStorage.setItem(REMOVED_ADS_KEY, JSON.stringify([...set]));
+  } catch (e) {
+    console.warn("Storage error", e);
+  }
+}
+
+function openCreateAdModal() {
+  if (!authUser) {
+    notify("Please sign in to post an advertisement.");
+    openSignIn();
+    return;
+  }
+
+  $("modalTitle").textContent = "Post a P2P Advertisement";
+  $("modalBody").innerHTML = `
+    <p class="sec-note">Create a live escrow listing. Collateral is securely locked in smart contracts.</p>
+    <label class="label">Offer Type</label>
+    <div style="display:flex; gap:10px; margin-bottom:12px;">
+      <button type="button" class="btn primary small" id="adSideSell" style="flex:1;">I want to Sell USDT</button>
+      <button type="button" class="btn outline small" id="adSideBuy" style="flex:1;">I want to Buy USDT</button>
+    </div>
+
+    <label class="label" for="adPriceInput">Price per USDT (ETB)</label>
+    <div class="entry"><input id="adPriceInput" type="number" step="0.01" value="186.00" placeholder="186.00"></div>
+
+    <label class="label" for="adAmountInput" style="margin-top:10px;">Available Amount (USDT)</label>
+    <div class="entry"><input id="adAmountInput" type="number" step="1" value="500" placeholder="500"></div>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px;">
+      <div>
+        <label class="label" for="adMinInput">Min Limit (ETB)</label>
+        <div class="entry"><input id="adMinInput" type="number" step="50" value="500" placeholder="500"></div>
+      </div>
+      <div>
+        <label class="label" for="adMaxInput">Max Limit (ETB)</label>
+        <div class="entry"><input id="adMaxInput" type="number" step="50" value="50000" placeholder="50000"></div>
+      </div>
+    </div>
+
+    <label class="label" style="margin-top:12px;">Supported Payment Methods</label>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:6px; font-size:12px; font-weight:600;">
+      <label style="display:flex; align-items:center; gap:6px;"><input type="checkbox" value="Commercial Bank of Ethiopia" checked> CBE</label>
+      <label style="display:flex; align-items:center; gap:6px;"><input type="checkbox" value="Tele Birr" checked> Telebirr</label>
+      <label style="display:flex; align-items:center; gap:6px;"><input type="checkbox" value="CBE Birr"> CBE Birr</label>
+      <label style="display:flex; align-items:center; gap:6px;"><input type="checkbox" value="Bank of Abyssinia"> Abyssinia</label>
+      <label style="display:flex; align-items:center; gap:6px;"><input type="checkbox" value="Awash Bank"> Awash Bank</label>
+      <label style="display:flex; align-items:center; gap:6px;"><input type="checkbox" value="Dashen Bank"> Dashen Bank</label>
+    </div>
+  `;
+
+  let chosenSide = "sell";
+  const sellBtn = $("adSideSell");
+  const buyBtn = $("adSideBuy");
+  sellBtn.onclick = () => {
+    chosenSide = "sell";
+    sellBtn.className = "btn primary small";
+    buyBtn.className = "btn outline small";
+  };
+  buyBtn.onclick = () => {
+    chosenSide = "buy";
+    buyBtn.className = "btn primary small";
+    sellBtn.className = "btn outline small";
+  };
+
+  $("modalFoot").innerHTML = `
+    <button class="btn primary" id="submitAdBtn" style="margin-bottom:8px;">Publish Advertisement</button>
+    <button class="btn outline" onclick="document.getElementById('modal').classList.remove('show')">Cancel</button>
+  `;
+
+  $("submitAdBtn").onclick = async () => {
+    const price = Number($("adPriceInput").value);
+    const amount = Number($("adAmountInput").value);
+    const min = Number($("adMinInput").value);
+    const max = Number($("adMaxInput").value);
+
+    if (!price || price <= 0 || !amount || amount <= 0) {
+      return notify("Please enter valid price and amount.");
+    }
+    if (min <= 0 || max < min) {
+      return notify("Please enter valid min and max limits.");
+    }
+
+    const checkedBoxes = Array.from($("modalBody").querySelectorAll("input[type=checkbox]:checked"));
+    const paymentMethods = checkedBoxes.map((cb) => cb.value);
+    if (!paymentMethods.length) {
+      return notify("Please select at least one payment method.");
+    }
+
+    try {
+      const { error } = await createAd({
+        owner_id: authUser.id,
+        side: chosenSide,
+        asset: "USDT",
+        currency: "ETB",
+        price_per_unit: price,
+        available_amount: amount,
+        min_fiat_amount: min,
+        max_fiat_amount: max,
+        payment_methods: paymentMethods,
+        is_active: true,
+      });
+
+      if (error) {
+        notify("Could not publish ad: " + error.message);
+      } else {
+        notify("Advertisement published successfully!");
+        closeModal();
+        loadAds(false);
+      }
+    } catch (err) {
+      notify("Failed to publish advertisement.");
+    }
+  };
+
+  $("modal").classList.add("show");
+}
+
+function openManageAdModal(offer) {
+  $("modalTitle").textContent = "Manage Advertisement";
+  $("modalBody").innerHTML = `
+    <p class="sec-note">Manage or remove your marketplace ad listing.</p>
+    <div class="summary" style="margin-bottom:12px;">
+      <div><b>Type:</b> ${offer.side === "sell" ? "Selling USDT" : "Buying USDT"}</div>
+      <div><b>Price:</b> ${money(offer.price, offer.currency)} / USDT</div>
+      <div><b>Available:</b> ${offer.stock.toLocaleString()} USDT</div>
+      <div><b>Limits:</b> ${money(offer.min, offer.currency)} – ${money(offer.max, offer.currency)}</div>
+      <div><b>Payment:</b> ${esc(offer.pay.join(", "))}</div>
+    </div>
+    <div style="background:var(--soft); padding:10px 14px; border-radius:10px; font-size:12px; color:var(--text);">
+      ⚠️ Removing this ad will immediately deactivate it from the public marketplace.
+    </div>
+  `;
+  $("modalFoot").innerHTML = `
+    <button class="btn danger" id="deactivateAdBtn" style="background:#e04848; color:#fff; border-color:#e04848; margin-bottom:8px; font-weight:700;">Remove & Deactivate Ad</button>
+    <button class="btn outline" onclick="document.getElementById('modal').classList.remove('show')">Close</button>
+  `;
+
+  $("deactivateAdBtn").onclick = async () => {
+    removeAdLocally(offer.id || offer.adId);
+    try {
+      if (offer.id) {
+        await updateAd(offer.id, { is_active: false, archived_at: new Date().toISOString() });
+      }
+    } catch (e) {
+      console.warn("Could not deactivate ad in DB:", e);
+    }
+    notify("Ad removed from marketplace.");
+    closeModal();
+    loadAds(false);
+  };
+
+  $("modal").classList.add("show");
+}
+
 function showVerificationStep(email) {
   $("modalTitle").textContent = "Check your email for verify link";
   $("modalBody").innerHTML = `
@@ -699,8 +872,18 @@ async function loadAds(append = false) {
   }
 
   let mapped = [];
-  if (rows && rows.length > 0) {
-    const ids = [...new Set(rows.map((row) => row.owner_id))];
+  const removedIds = getRemovedAdIds();
+
+  // Filter out test ads and removed listings (test ad Trader-2AED5E2C16FA)
+  const activeRows = (rows || []).filter((row) => {
+    if (removedIds.has(row.id)) return false;
+    if (row.id === "2dc20430-5102-40d8-8590-6e73f679b3c3") return false;
+    if (row.owner_id === "2aed5e2c-16fa-48b7-ba90-b095f7240bd7") return false;
+    return true;
+  });
+
+  if (activeRows.length > 0) {
+    const ids = [...new Set(activeRows.map((row) => row.owner_id))];
     let profileRows = [];
     try {
       const res = await listProfiles(ids);
@@ -709,15 +892,9 @@ async function loadAds(append = false) {
       console.warn("Profiles list unavailable:", e);
     }
     const handles = new Map(profileRows.map((profile) => [profile.id, profile.public_handle]));
-    mapped = rows.map((row) => toOffer(row, handles));
+    mapped = activeRows.map((row) => toOffer(row, handles));
   } else {
-    // If database table is empty, display rich high-quality seed offers for seamless trading & testing
-    const paymentFilter = $("payment")?.value || "all";
-    mapped = SEED_OFFERS.filter((o) => {
-      const matchesSide = o.side === requestedSide;
-      const matchesPayment = paymentFilter === "all" || o.pay.some(p => p.toLowerCase().includes(paymentFilter.toLowerCase()));
-      return matchesSide && matchesPayment;
-    });
+    mapped = [];
   }
 
   offers = append ? offers.concat(mapped) : mapped;
@@ -729,7 +906,7 @@ async function loadAds(append = false) {
     loadMore.hidden = !canLoadMore;
     loadMore.disabled = false;
   }
-  setDatabaseStatus("Escrow marketplace active (0% fees)", true);
+  setDatabaseStatus("Escrow marketplace active", true);
   render();
   finishAdsLoad();
 }
@@ -775,13 +952,13 @@ function render() {
       $("rows").querySelectorAll("[data-offer]").forEach((button) => button.onclick = (event) => {
         event.stopPropagation();
         const offer = offers[Number(button.dataset.offer)];
-        if (offer.isOwn) setView("ads"); else trade(offer);
+        if (offer.isOwn) openManageAdModal(offer); else trade(offer);
       });
 
       $("rows").querySelectorAll("[data-row-offer]").forEach((row) => {
         const action = () => {
           const offer = offers[Number(row.dataset.rowOffer)];
-          if (offer.isOwn) setView("ads"); else trade(offer);
+          if (offer.isOwn) openManageAdModal(offer); else trade(offer);
         };
         row.onclick = (event) => { if (!event.target.closest("button")) action(); };
         row.onkeydown = (event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); action(); } };
@@ -847,7 +1024,7 @@ function render() {
         button.onclick = (event) => {
           event.stopPropagation();
           const offer = offers[Number(button.dataset.offer)];
-          if (offer.isOwn) setView("ads"); else trade(offer);
+          if (offer.isOwn) openManageAdModal(offer); else trade(offer);
         };
       });
 
@@ -855,7 +1032,7 @@ function render() {
         card.onclick = (event) => {
           if (!event.target.closest("button")) {
             const offer = offers[Number(card.dataset.mobileOffer)];
-            if (offer.isOwn) setView("ads"); else trade(offer);
+            if (offer.isOwn) openManageAdModal(offer); else trade(offer);
           }
         };
       });
@@ -1192,7 +1369,7 @@ function initApp() {
   if ($("signup")) $("signup").onclick = () => (authUser ? openProfile() : openSignUp());
   if ($("security")) $("security").onclick = () => openSecurity();
   if ($("profile")) $("profile").onclick = () => openProfile();
-  if ($("post")) $("post").onclick = () => (authUser ? setView("ads") : openSignIn());
+  if ($("post")) $("post").onclick = () => (authUser ? openCreateAdModal() : openSignIn());
   if ($("how")) $("how").onclick = () => openHowP2PWorks();
 
   if ($("coin")) $("coin").onchange = () => scheduleAdsLoad();
@@ -1239,7 +1416,7 @@ function initApp() {
 
   const mNavAds = $("mNavAds");
   if (mNavAds) mNavAds.onclick = () => {
-    if (authUser) setView("ads");
+    if (authUser) openCreateAdModal();
     else openSignIn();
   };
 

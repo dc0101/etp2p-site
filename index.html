@@ -225,48 +225,6 @@
     .toast { position:fixed; left:50%; bottom:28px; transform:translateX(-50%); max-width:calc(100% - 32px); padding:12px 18px; border-radius:10px; background:var(--text); color:var(--panel); font-weight:600; opacity:0; pointer-events:none; transition:opacity .2s, transform .2s cubic-bezier(0.16, 1, 0.3, 1); z-index:60; box-shadow:0 4px 16px rgba(0,0,0,0.15); }
     .toast.show { opacity:1; }
 
-    /* Desktop Banner (Image 1) */
-    .bybit-promo-banner {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-      padding: 20px 24px;
-      margin-bottom: 22px;
-      border-radius: 16px;
-      background: linear-gradient(135deg, rgba(31,157,107,0.12), rgba(47,181,131,0.04));
-      border: 1px solid var(--line);
-    }
-    .promo-pill {
-      display: inline-block;
-      padding: 3px 10px;
-      border-radius: 999px;
-      font-size: 11px;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: .05em;
-      background: var(--soft);
-      color: var(--green);
-      border: 1px solid var(--green);
-      margin-bottom: 6px;
-    }
-    .bybit-promo-banner h3 { margin: 0 0 4px; font-size: 20px; font-weight: 800; color: var(--text); }
-    .bybit-promo-banner p { margin: 0; font-size: 13px; color: var(--muted); }
-    .promo-badge {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 10px 16px;
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      font-size: 11px;
-      font-weight: 700;
-      color: var(--text);
-    }
-    .shield-badge { font-size: 24px; margin-bottom: 2px; }
-
     /* Mobile vs Desktop Display Rules */
     .mobile-cards { display: none; }
     .mobile-bottom-nav { display: none; }
@@ -360,7 +318,6 @@
 
     /* Mobile Responsive Breakpoints - Custom Phone Experience */
     @media (max-width: 768px) {
-      .bybit-promo-banner { display: none !important; }
       .table-wrap { display: none !important; }
       .mobile-cards { display: flex; flex-direction: column; gap: 12px; }
       .panel { padding: 14px; border-radius:14px; }
@@ -532,18 +489,6 @@
           <button class="btn" id="how">How P2P works</button>
         </section>
 
-        <!-- Bybit-style Desktop Promo Banner (Image 1) -->
-        <div class="bybit-promo-banner">
-          <div class="promo-text">
-            <span class="promo-pill">Etp2p Escrow Marketplace</span>
-            <h3>Zero Fee Peer-to-Peer Crypto Trading</h3>
-            <p>Buy &amp; sell USDT, BTC, and ETH safely with verified Ethiopian bank transfers &amp; Telebirr.</p>
-          </div>
-          <div class="promo-badge">
-            <div class="shield-badge">🛡️</div>
-            <span>100% Escrow</span>
-          </div>
-        </div>
 
         <div class="note-card"><small>Account protection</small>Database multi-signature escrow holding crypto collateral until payment is confirmed.</div>
 
