@@ -7,30 +7,30 @@
   <style>
     :root {
       color-scheme: dark;
-      --bg: #0b0e11;
-      --panel: #181a20;
-      --soft: #1e2329;
-      --line: #2b3139;
-      --text: #eaecef;
-      --muted: #848e9c;
-      --green: #fcd535;
-      --green-ink: #181a20;
-      --amber: #f59e0b;
-      --amber-soft: #2e2008;
+      --bg: #0a1018;
+      --panel: #111a24;
+      --soft: #182532;
+      --line: #293a4a;
+      --text: #edf3fa;
+      --muted: #9aabba;
+      --green: #f0b90b;
+      --green-ink: #0a1018;
+      --amber: #f5ad28;
+      --amber-soft: #302300;
     }
 
     body.light-mode {
       color-scheme: light;
-      --bg: #f5f7fa;
+      --bg: #f4f7fb;
       --panel: #fff;
-      --soft: #f1f3f5;
-      --line: #e5e7eb;
-      --text: #1e2329;
-      --muted: #707a8a;
+      --soft: #edf2f7;
+      --line: #dce5ee;
+      --text: #182434;
+      --muted: #66788a;
       --green: #c99a00;
       --green-ink: #fff;
-      --amber: #d97706;
-      --amber-soft: #fef3c7;
+      --amber: #b35f00;
+      --amber-soft: #fff3d0;
     }
 
     * { box-sizing: border-box; }
@@ -328,6 +328,22 @@
       .copy-btn { width: 100%; justify-content: center; }
       #orderActions .btn { min-width: 0 !important; width: 100%; }
     }
+    @keyframes themeTogglePop { 50% { transform: scale(1.08); } }
+    body.theme-changing #themeToggleBtn { animation: themeTogglePop .42s cubic-bezier(.2,.8,.2,1); }
+
+    @media (pointer: coarse) {
+      .topbar { padding: 8px 10px; gap: 6px; }
+      .topbar > div { gap: 6px !important; }
+      .topbar .btn.small { padding: 6px 8px; font-size: 11px; }
+      .page { width: 100%; max-width: 100%; min-width: 0; padding: 14px 10px 40px; }
+      .card { padding: 14px; }
+      .escrow-banner { padding: 14px; }
+      .grid-2 { grid-template-columns: minmax(0, 1fr); }
+      .bank-detail-row { flex-direction: column; align-items: flex-start; gap: 8px; }
+      .copy-btn { width: 100%; justify-content: center; }
+      #orderActions .btn { min-width: 0 !important; width: 100%; }
+    }
+
     @media (max-width: 380px) {
       .topbar .brand { display: none; }
       .topbar > div:first-child { flex: 1; }
@@ -539,9 +555,15 @@
       document.body.classList.toggle("light-mode", !isDark);
       localStorage.setItem("theme", isDark ? "dark" : "light");
       $("themeToggleBtn").textContent = isDark ? "☀️ Light" : "🌙 Dark";
+      $("themeToggleBtn").setAttribute("aria-pressed", String(isDark));
+      document.body.classList.remove("theme-changing");
+      void document.body.offsetWidth;
+      document.body.classList.add("theme-changing");
+      window.setTimeout(() => document.body.classList.remove("theme-changing"), 450);
     };
 
     initTheme();
+    $("themeToggleBtn").setAttribute("aria-pressed", String(document.body.classList.contains("dark-mode")));
 
     // Copy to clipboard with instant tactile feedback
     document.querySelectorAll("[data-copy-target]").forEach((btn) => {
