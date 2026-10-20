@@ -1339,10 +1339,18 @@ function initApp() {
       const isDark = document.body.classList.contains("dark-mode");
       themeBtn.textContent = isDark ? "☀️ Light" : "🌙 Dark";
       themeBtn.setAttribute("aria-label", isDark ? "Switch to light theme" : "Switch to dark theme");
+      themeBtn.setAttribute("aria-pressed", String(isDark));
       themeBtn.title = isDark ? "Switch to light theme" : "Switch to dark theme";
     };
     syncThemeButton();
-    themeBtn.onclick = () => { toggleDarkMode(); syncThemeButton(); };
+    themeBtn.onclick = () => {
+      toggleDarkMode();
+      syncThemeButton();
+      document.body.classList.remove("theme-changing");
+      void document.body.offsetWidth;
+      document.body.classList.add("theme-changing");
+      window.setTimeout(() => document.body.classList.remove("theme-changing"), 450);
+    };
   }
 
   supabase.auth.getSession().then(({ data: { session } }) => {
