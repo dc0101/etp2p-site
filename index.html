@@ -126,6 +126,7 @@ body.side-closed #sideToggle svg{transform:rotate(180deg)}
 .panel-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}
 .panel h2{margin:0;font-size:22px}
 .badge{padding:4px 12px;border-radius:999px;background:var(--soft);border:1px solid var(--buy);color:var(--buy);font-size:13px;font-weight:700}
+.badge.theme-accent{border-color:var(--accent);color:var(--accent)}
 .filters{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:16px}
 .seg{display:flex;padding:4px;border:1px solid var(--line);border-radius:10px;background:var(--soft)}
 .seg button{padding:8px 18px;border:0;border-radius:7px;background:transparent;font-weight:700;color:var(--muted);cursor:pointer}
@@ -382,7 +383,7 @@ body.theme-changing .theme-toggle{animation:themeTogglePop .42s cubic-bezier(.2,
       <section class="intro">
         <div>
           <h1 id="title">Buy and sell crypto, your way.</h1>
-          <p id="subtitle">Offers from Etp2p users, shared through Supabase.</p>
+          <p id="subtitle">Offers from Etp2p users.</p>
         </div>
         <button class="btn" id="how">How P2P works</button>
       </section>
@@ -390,7 +391,7 @@ body.theme-changing .theme-toggle{animation:themeTogglePop .42s cubic-bezier(.2,
       <div class="note-card"><small>Account protection</small>Authenticator for ads &amp; order updates</div>
 
       <section class="panel" id="market">
-        <div class="panel-head"><h2>Find your offer</h2><span class="badge">Escrow protected</span></div>
+        <div class="panel-head"><h2>Find your offer</h2><span class="badge theme-accent">Escrow protected</span></div>
         <div class="filters">
           <div class="seg" role="group" aria-label="Trade side"><button class="on" data-side="buy">Buy</button><button data-side="sell">Sell</button></div>
           <label class="f filter-asset"><span>Asset</span><select id="coin"><option value="USDT">USDT</option></select></label>
