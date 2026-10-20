@@ -1367,7 +1367,7 @@ function initApp() {
   if ($("security")) $("security").onclick = () => openSecurity();
   if ($("profile")) $("profile").onclick = () => openProfile();
   if ($("post")) $("post").onclick = () => (authUser ? openCreateAdModal() : openSignIn());
-  if ($("how")) $("how").onclick = () => openHowP2PWorks();
+  if ($("howP2PWorksBtn")) $("howP2PWorksBtn").onclick = () => openHowP2PWorks();
 
   if ($("coin")) $("coin").onchange = () => scheduleAdsLoad();
   if ($("fiat")) $("fiat").onchange = () => scheduleAdsLoad();
