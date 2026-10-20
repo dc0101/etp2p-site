@@ -9,6 +9,8 @@
 <style>
 :root{color-scheme:dark;--bg:#0b0e11;--panel:#181a20;--soft:#1e2329;--line:#2b3139;--text:#eaecef;--muted:#848e9c;--accent:#fcd535;--ink:#181a20;--green:#fcd535;--buy:#0ecb81;--sell:#f6465d}
 body.light-mode{color-scheme:light;--bg:#f5f7fa;--panel:#fff;--soft:#f1f3f5;--line:#e5e7eb;--text:#1e2329;--muted:#707a8a;--accent:#c99a00;--ink:#fff;--green:#c99a00;--buy:#0ecb81;--sell:#f6465d}
+body.signed-in:not(.light-mode){color-scheme:dark;--bg:#0a1018;--panel:#111a24;--soft:#182532;--line:#293a4a;--text:#edf3fa;--muted:#9aabba;--accent:#f0b90b;--ink:#0a1018;--green:#f0b90b;--buy:#0ecb81;--sell:#f6465d;--app-glow:rgba(240,185,11,.08)}
+body.signed-in.light-mode{color-scheme:light;--bg:#f4f7fb;--panel:#fff;--soft:#edf2f7;--line:#dce5ee;--text:#182434;--muted:#66788a;--accent:#c99a00;--ink:#fff;--green:#c99a00;--buy:#0ecb81;--sell:#f6465d;--app-glow:rgba(201,154,0,.07)}
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
 body{margin:0;background:var(--bg);color:var(--text);font:15px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;transition:background-color .24s ease,color .24s ease}
@@ -84,7 +86,8 @@ body:not(.booting) .landing .fade{animation:up .8s ease both;animation-delay:var
 .foot{padding:28px 20px 40px;border-top:1px solid var(--line);color:var(--muted);font-size:13px;text-align:center}
 
 /* Signed-in app */
-.shell{display:flex;min-height:100vh}
+.shell{display:flex;min-height:100vh;background:var(--bg)}
+.content{background:radial-gradient(ellipse at 88% -8%,var(--app-glow,transparent),transparent 42rem),var(--bg)}
 .sidebar{width:248px;flex:none;position:sticky;top:0;height:100vh;overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;gap:14px;padding:18px 12px;background:var(--panel);border-right:1px solid var(--line);opacity:1;transform:translateX(0);transition:background-color .24s ease,color .24s ease,width .28s cubic-bezier(.2,.8,.2,1),padding .28s ease,transform .28s cubic-bezier(.2,.8,.2,1),opacity .2s ease,border-color .2s ease}
 .sidebar .brand{padding:0 8px}
 .drawer-backdrop{display:none}
@@ -93,7 +96,8 @@ body.side-closed .sidebar{width:0;padding-left:0;padding-right:0;border-right:0;
 .group{margin:14px 8px 6px;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
 .nav a,.nav button{display:flex;align-items:center;gap:12px;width:100%;padding:10px 12px;border:0;border-radius:8px;background:transparent;color:var(--text);font-weight:600;text-align:left;text-decoration:none;cursor:pointer}
 .nav a:hover,.nav button:hover{background:var(--soft)}
-.nav a.active{background:var(--soft);color:var(--accent)}
+.nav a.active{position:relative;background:var(--soft);color:var(--accent)}
+.nav a.active::before{content:"";position:absolute;left:0;top:8px;bottom:8px;width:3px;border-radius:0 3px 3px 0;background:var(--accent);box-shadow:0 0 14px var(--app-glow,transparent)}
 .sidebar>.btn.primary{width:100%}
 .usercard{display:flex;align-items:center;gap:10px;padding:10px;border:1px solid var(--line);border-radius:10px}
 .avatar{display:grid;place-items:center;width:34px;height:34px;flex:none;border-radius:50%;background:var(--soft);color:var(--accent);font-weight:800}
@@ -101,10 +105,11 @@ body.side-closed .sidebar{width:0;padding-left:0;padding-right:0;border-right:0;
 .usercard-text b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px}
 .usercard-text button{padding:0;border:0;background:transparent;color:var(--muted);font-size:12px;text-decoration:underline;cursor:pointer}
 .content{flex:1;min-width:0}
-.topbar{display:flex;align-items:center;gap:12px;padding:10px 20px;border-bottom:1px solid var(--line)}
+.topbar{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:12px;padding:10px 20px;border-bottom:1px solid var(--line);background:var(--bg);background:color-mix(in srgb,var(--bg) 90%,transparent);backdrop-filter:blur(16px);box-shadow:0 8px 24px rgba(0,0,0,.08)}
 .icon-btn{display:grid;place-items:center;width:38px;height:38px;border:1px solid var(--line);border-radius:8px;background:transparent;font-size:18px;cursor:pointer;transition:background-color .2s ease,color .2s ease,border-color .2s ease,transform .25s cubic-bezier(.2,.8,.2,1)}
 .icon-btn:hover{background:var(--soft);border-color:var(--accent)}
-.theme-toggle{width:auto;min-width:88px;margin-left:auto;padding:0 11px;font-size:13px;font-weight:700;white-space:nowrap}
+.theme-toggle{width:auto;min-width:92px;margin-left:auto;padding:0 12px;font-size:13px;font-weight:700;white-space:nowrap;box-shadow:0 0 0 1px var(--app-glow,transparent);transition:background-color .24s ease,color .24s ease,border-color .24s ease,transform .24s cubic-bezier(.2,.8,.2,1),box-shadow .24s ease}
+.theme-toggle:hover{transform:translateY(-1px);box-shadow:0 0 18px var(--app-glow,transparent)}
 #sideToggle svg{transition:transform .28s cubic-bezier(.2,.8,.2,1)}
 body.side-closed #sideToggle svg{transform:rotate(180deg)}
 .topbar span{font-weight:700}
@@ -112,9 +117,9 @@ body.side-closed #sideToggle svg{transform:rotate(180deg)}
 .intro{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:20px}
 .intro h1{margin:0;font-size:30px;line-height:1.15}
 #subtitle{margin:6px 0 0;color:var(--muted)}
-.note-card{margin-bottom:20px;padding:14px 18px;border:1px solid var(--line);border-radius:12px;background:var(--panel);font-weight:700}
+.note-card{margin-bottom:20px;padding:14px 18px;border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:12px;background:linear-gradient(135deg,var(--panel),var(--soft));font-weight:700;box-shadow:0 8px 24px rgba(0,0,0,.08)}
 .note-card small{display:block;font-weight:400}
-.panel{border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:20px}
+.panel{border:1px solid var(--line);border-radius:16px;background:var(--panel);padding:20px;box-shadow:0 14px 36px rgba(0,0,0,.12)}
 #orders{display:none}
 #orders.show{display:block}
 .panel-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}
@@ -193,6 +198,8 @@ tbody tr[data-row-offer]:hover{background:var(--soft)}
 .toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);max-width:calc(100% - 32px);padding:12px 18px;border-radius:8px;background:var(--text);color:var(--bg);font-weight:600;opacity:0;pointer-events:none;transition:opacity .2s;z-index:60}
 .toast.show{opacity:1}
 .lnav,.topbar,.panel,.note-card,.sheet,.card,.usercard,.f,.nav a,.nav button,.avatar,.badge,.entry,.summary{transition:background-color .24s ease,color .24s ease,border-color .24s ease,box-shadow .24s ease}
+@keyframes themeTogglePop{50%{transform:scale(1.08)}}
+body.theme-changing .theme-toggle{animation:themeTogglePop .42s cubic-bezier(.2,.8,.2,1)}
 
 @media (max-width:800px){
   .hero{grid-template-columns:1fr;padding-top:40px}
@@ -234,6 +241,26 @@ tbody tr[data-row-offer]:hover{background:var(--soft)}
   .theme-toggle{min-width:72px!important}
   .m-card{padding:12px}
 }
+
+/* Phones in desktop-site mode still get the touch layout. */
+@media (pointer:coarse){
+  .shell,.content{width:100%;min-width:0}
+  .sidebar{position:fixed;left:0;top:0;bottom:0;z-index:40;width:min(280px,86vw);height:100dvh;padding:18px 12px;box-shadow:0 0 40px rgba(0,0,0,.38);transform:translateX(0)}
+  body.side-closed .sidebar{width:min(280px,86vw);padding:18px 12px;transform:translateX(-110%);opacity:0;pointer-events:none}
+  .drawer-backdrop{display:block;position:fixed;inset:0;z-index:35;background:rgba(0,0,0,.5);backdrop-filter:blur(2px);opacity:0;pointer-events:none;transition:opacity .24s ease}
+  body:not(.side-closed) .drawer-backdrop{opacity:1;pointer-events:auto}
+  .page{width:100%;padding:16px 12px 40px}
+  .panel{min-width:0;padding:14px}
+  .filters{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .filters .seg,.filters .f{width:100%;min-width:0}
+  .filters .f{justify-content:space-between;padding:6px 8px}
+  .filters .f select,.filters .f input{min-width:0;max-width:100%;font-size:12px}
+  .filters .filter-payment{grid-column:1/-1}
+  #reset{grid-column:2;justify-self:end;margin:0}
+  .table-wrap{display:none!important}
+  .mobile-cards{display:flex!important}
+}
+
 @media (prefers-reduced-motion:reduce){
   html{scroll-behavior:auto}
   *{animation:none!important;transition:none!important}
@@ -431,6 +458,7 @@ tbody tr[data-row-offer]:hover{background:var(--soft)}
   let authExpiryPending = false;
   const LAST_ACTIVE_KEY = "etp2p_auth_last_active";
   const MAX_IDLE_MS = 24 * 60 * 60 * 1000;
+  const isTouchLayout = () => window.innerWidth < 800 || window.matchMedia("(pointer: coarse)").matches;
 
   function touchAuthSession() {
     if (!currentUser) return;
@@ -468,7 +496,7 @@ tbody tr[data-row-offer]:hover{background:var(--soft)}
     touchAuthSession();
   }
 
-  if (window.innerWidth < 800) { body.classList.add("side-closed"); $("sideToggle").setAttribute("aria-expanded", "false"); } else { $("sideToggle").setAttribute("aria-expanded", "true"); }
+  if (isTouchLayout()) { body.classList.add("side-closed"); $("sideToggle").setAttribute("aria-expanded", "false"); } else { $("sideToggle").setAttribute("aria-expanded", "true"); }
 
   function setUser(user) {
     const wasSignedIn = Boolean(currentUser);
@@ -512,13 +540,13 @@ tbody tr[data-row-offer]:hover{background:var(--soft)}
     $("sideToggle").setAttribute("aria-expanded", "false");
   };
   document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape" && window.innerWidth < 800 && !body.classList.contains("side-closed")) {
+    if (event.key === "Escape" && isTouchLayout() && !body.classList.contains("side-closed")) {
       body.classList.add("side-closed");
       $("sideToggle").setAttribute("aria-expanded", "false");
     }
   });
   $("sidebar").addEventListener("click", (event) => {
-    if (window.innerWidth < 800 && event.target.closest("a,button")) {
+    if (isTouchLayout() && event.target.closest("a,button")) {
       body.classList.add("side-closed");
       $("sideToggle").setAttribute("aria-expanded", "false");
     }
