@@ -7,10 +7,11 @@
 <title>Etp2p - Trade USDT with Birr, peer to peer</title>
 <script>document.documentElement.className = "js";</script>
 <style>
-:root{--bg:#0b0e11;--panel:#181a20;--soft:#1e2329;--line:#2b3139;--text:#eaecef;--muted:#848e9c;--accent:#fcd535;--ink:#181a20;--green:#fcd535;--buy:#0ecb81;--sell:#f6465d}
+:root{color-scheme:dark;--bg:#0b0e11;--panel:#181a20;--soft:#1e2329;--line:#2b3139;--text:#eaecef;--muted:#848e9c;--accent:#fcd535;--ink:#181a20;--green:#fcd535;--buy:#0ecb81;--sell:#f6465d}
+body.light-mode{color-scheme:light;--bg:#f5f7fa;--panel:#fff;--soft:#f1f3f5;--line:#e5e7eb;--text:#1e2329;--muted:#707a8a;--accent:#c99a00;--ink:#fff;--green:#c99a00;--buy:#0ecb81;--sell:#f6465d}
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
-body{margin:0;background:var(--bg);color:var(--text);font:15px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+body{margin:0;background:var(--bg);color:var(--text);font:15px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;transition:background-color .24s ease,color .24s ease}
 button,input,select{font:inherit;color:inherit}
 select,input{background:transparent}
 option{background:var(--panel);color:var(--text)}
@@ -18,20 +19,19 @@ option{background:var(--panel);color:var(--text)}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 :focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 .ic{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.btn{padding:10px 18px;border-radius:8px;border:1px solid var(--line);background:transparent;font-weight:700;cursor:pointer;transition:filter .2s,transform .2s}
+.btn{padding:10px 18px;border-radius:8px;border:1px solid var(--line);background:transparent;font-weight:700;cursor:pointer;transition:filter .2s,transform .2s,background-color .24s ease,color .24s ease,border-color .24s ease}
 .btn:hover{filter:brightness(1.12)}
 .btn.small{padding:7px 14px;font-size:14px}
 .btn.primary{background:var(--accent);border-color:var(--accent);color:var(--ink)}
 .btn:disabled{opacity:.55;cursor:not-allowed}
 .brand{display:flex;align-items:center;gap:10px;font-size:20px;font-weight:800;color:inherit;text-decoration:none}
 .mark{display:grid;place-items:center;width:32px;height:32px;border-radius:8px;background:var(--accent);color:var(--ink)}
-#sendMagicLink{display:none}
 
 /* Visitor landing vs signed-in app */
 body.booting .landing,body.booting .shell{visibility:hidden}
 body:not(.signed-in) .shell,body.signed-in .landing{display:none}
 .landing{overflow-x:hidden}
-.lnav{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:24px;padding:12px max(20px,calc((100% - 1100px)/2));background:rgba(11,14,17,.88);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.lnav{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:24px;padding:12px max(20px,calc((100% - 1100px)/2));background:var(--bg);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);transition:background-color .24s ease,border-color .24s ease}
 .links{display:flex;gap:20px;margin-left:12px}
 .links a{color:var(--muted);text-decoration:none;font-weight:600;transition:color .2s}
 .links a:hover{color:var(--text)}
@@ -85,9 +85,10 @@ body:not(.booting) .landing .fade{animation:up .8s ease both;animation-delay:var
 
 /* Signed-in app */
 .shell{display:flex;min-height:100vh}
-.sidebar{width:248px;flex:none;position:sticky;top:0;height:100vh;overflow-y:auto;display:flex;flex-direction:column;gap:14px;padding:18px 12px;background:var(--panel);border-right:1px solid var(--line)}
+.sidebar{width:248px;flex:none;position:sticky;top:0;height:100vh;overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;gap:14px;padding:18px 12px;background:var(--panel);border-right:1px solid var(--line);opacity:1;transform:translateX(0);transition:background-color .24s ease,color .24s ease,width .28s cubic-bezier(.2,.8,.2,1),padding .28s ease,transform .28s cubic-bezier(.2,.8,.2,1),opacity .2s ease,border-color .2s ease}
 .sidebar .brand{padding:0 8px}
-body.side-closed .sidebar{display:none}
+.drawer-backdrop{display:none}
+body.side-closed .sidebar{width:0;padding-left:0;padding-right:0;border-right:0;transform:translateX(-100%);opacity:0;pointer-events:none}
 .nav{flex:1;display:flex;flex-direction:column;gap:2px}
 .group{margin:14px 8px 6px;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
 .nav a,.nav button{display:flex;align-items:center;gap:12px;width:100%;padding:10px 12px;border:0;border-radius:8px;background:transparent;color:var(--text);font-weight:600;text-align:left;text-decoration:none;cursor:pointer}
@@ -101,7 +102,11 @@ body.side-closed .sidebar{display:none}
 .usercard-text button{padding:0;border:0;background:transparent;color:var(--muted);font-size:12px;text-decoration:underline;cursor:pointer}
 .content{flex:1;min-width:0}
 .topbar{display:flex;align-items:center;gap:12px;padding:10px 20px;border-bottom:1px solid var(--line)}
-.icon-btn{display:grid;place-items:center;width:38px;height:38px;border:1px solid var(--line);border-radius:8px;background:transparent;font-size:18px;cursor:pointer}
+.icon-btn{display:grid;place-items:center;width:38px;height:38px;border:1px solid var(--line);border-radius:8px;background:transparent;font-size:18px;cursor:pointer;transition:background-color .2s ease,color .2s ease,border-color .2s ease,transform .25s cubic-bezier(.2,.8,.2,1)}
+.icon-btn:hover{background:var(--soft);border-color:var(--accent)}
+.theme-toggle{width:auto;min-width:88px;margin-left:auto;padding:0 11px;font-size:13px;font-weight:700;white-space:nowrap}
+#sideToggle svg{transition:transform .28s cubic-bezier(.2,.8,.2,1)}
+body.side-closed #sideToggle svg{transform:rotate(180deg)}
 .topbar span{font-weight:700}
 .page{max-width:1100px;margin:0 auto;padding:26px 20px 60px}
 .intro{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:20px}
@@ -128,6 +133,23 @@ body.side-closed .sidebar{display:none}
 #reset{margin-left:auto}
 .table-wrap{overflow-x:auto}
 table{width:100%;border-collapse:collapse;min-width:720px}
+.mobile-cards{display:none;flex-direction:column;gap:12px}
+.m-card{padding:16px;border:1px solid var(--line);border-radius:12px;background:var(--panel);cursor:pointer;transition:transform .2s ease,border-color .2s ease,background-color .24s ease}
+.m-card:active{transform:scale(.99)}
+.m-card:hover{border-color:var(--accent)}
+.m-card-top,.m-card-user,.m-limit-row,.m-card-price{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.m-card-user{justify-content:flex-start;min-width:0}
+.m-card-user>div:last-child{min-width:0}
+.m-card-user .mname{overflow-wrap:anywhere}
+.v-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--buy);vertical-align:middle}
+.m-card-price{justify-content:flex-start;align-items:baseline;margin:16px 0 12px;gap:5px}
+.m-price-num{font-size:22px;font-weight:800}
+.m-price-unit{color:var(--muted);font-size:13px}
+.m-card-limits{display:grid;gap:9px;padding:12px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.m-limit-row{align-items:flex-start}
+.m-limit-lbl{color:var(--muted);font-size:12px}
+.m-limit-val{max-width:65%;font-size:12px;font-weight:700;text-align:right;overflow-wrap:anywhere}
+.m-card-foot{margin-top:12px}
 th{padding:10px 12px;text-align:left;color:var(--muted);font-size:13px;font-weight:600;border-bottom:1px solid var(--line)}
 td{padding:16px 12px;border-bottom:1px solid var(--line);vertical-align:middle}
 tbody tr[data-row-offer]{cursor:pointer}
@@ -170,12 +192,47 @@ tbody tr[data-row-offer]:hover{background:var(--soft)}
 .sheet-foot .btn{width:100%}
 .toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);max-width:calc(100% - 32px);padding:12px 18px;border-radius:8px;background:var(--text);color:var(--bg);font-weight:600;opacity:0;pointer-events:none;transition:opacity .2s;z-index:60}
 .toast.show{opacity:1}
+.lnav,.topbar,.panel,.note-card,.sheet,.card,.usercard,.f,.nav a,.nav button,.avatar,.badge,.entry,.summary{transition:background-color .24s ease,color .24s ease,border-color .24s ease,box-shadow .24s ease}
 
 @media (max-width:800px){
   .hero{grid-template-columns:1fr;padding-top:40px}
   .links{display:none}
-  .sidebar{position:fixed;left:0;z-index:40;box-shadow:0 0 40px rgba(0,0,0,.7)}
+  .shell,.content{width:100%;min-width:0}
+  .sidebar{position:fixed;left:0;top:0;bottom:0;z-index:40;width:min(280px,86vw);height:100dvh;padding:18px 12px;box-shadow:0 0 40px rgba(0,0,0,.38);transform:translateX(0)}
+  body.side-closed .sidebar{width:min(280px,86vw);padding:18px 12px;transform:translateX(-110%);opacity:0;pointer-events:none}
+  .drawer-backdrop{display:block;position:fixed;inset:0;z-index:35;background:rgba(0,0,0,.5);backdrop-filter:blur(2px);opacity:0;pointer-events:none;transition:opacity .24s ease}
+  body:not(.side-closed) .drawer-backdrop{opacity:1;pointer-events:auto}
   .intro h1{font-size:25px}
+  .page{width:100%;padding:20px 14px 44px}
+  .panel{min-width:0}
+  .filters .f{min-width:0}
+  .filters .f select,.filters .f input{min-width:0;max-width:100%}
+}
+@media (max-width:760px){
+  .topbar{padding:9px 12px}
+  .topbar .theme-toggle{min-width:78px;padding:0 8px;font-size:12px}
+  .page{padding:16px 10px 40px}
+  .note-card{padding:12px}
+  .panel{padding:14px}
+  .panel-head{align-items:flex-start}
+  .panel h2{font-size:20px}
+  .filters{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .filters .seg,.filters .f{width:100%;min-width:0}
+  .filters .f{justify-content:space-between;padding:6px 8px}
+  .filters .f>span{font-size:11px}
+  .filters .f select,.filters .f input{font-size:12px}
+  .filters .filter-payment{grid-column:1/-1}
+  #reset{grid-column:2;justify-self:end;margin:0}
+  .table-wrap{display:none}
+  .mobile-cards{display:flex}
+  .panel-foot{align-items:flex-start}
+}
+@media (max-width:380px){
+  .intro{align-items:flex-start}
+  .intro h1{font-size:22px}
+  .intro>.btn{padding:8px 10px;font-size:12px}
+  .theme-toggle{min-width:72px!important}
+  .m-card{padding:12px}
 }
 @media (prefers-reduced-motion:reduce){
   html{scroll-behavior:auto}
@@ -267,6 +324,7 @@ tbody tr[data-row-offer]:hover{background:var(--soft)}
 
 <!-- Signed-in app -->
 <div class="shell">
+  <div class="drawer-backdrop" id="drawerBackdrop" aria-hidden="true"></div>
   <aside class="sidebar" id="sidebar">
     <a class="brand" href="./"><span class="mark">E</span>Etp2p</a>
     <nav class="nav" aria-label="Main">
@@ -290,6 +348,7 @@ tbody tr[data-row-offer]:hover{background:var(--soft)}
     <div class="topbar">
       <button class="icon-btn" id="sideToggle" aria-label="Show or hide the menu"><svg class="ic" viewBox="0 0 24 24"><path d="M3 4h18v16H3zM9 4v16"/></svg></button>
       <span>Etp2p</span>
+      <button class="icon-btn theme-toggle" id="themeToggleBtn" type="button" aria-label="Toggle color theme" title="Toggle color theme">🌙 Dark</button>
     </div>
     <main class="page">
       <section class="intro">
@@ -306,16 +365,17 @@ tbody tr[data-row-offer]:hover{background:var(--soft)}
         <div class="panel-head"><h2>Find your offer</h2><span class="badge">Escrow protected</span></div>
         <div class="filters">
           <div class="seg" role="group" aria-label="Trade side"><button class="on" data-side="buy">Buy</button><button data-side="sell">Sell</button></div>
-          <label class="f"><span>Asset</span><select id="coin"><option value="USDT">USDT</option></select></label>
-          <label class="f"><span>With</span><select id="fiat"><option value="ETB">Birr (ETB)</option><option value="USD">US Dollar (USD)</option></select></label>
-          <label class="f"><span>Amount</span><input id="amount" type="number" min="0" step="any" placeholder="Any"><select id="amountUnit"><option value="fiat">ETB</option><option value="crypto">USDT</option></select></label>
-          <label class="f"><span>Pay with</span>
+          <label class="f filter-asset"><span>Asset</span><select id="coin"><option value="USDT">USDT</option></select></label>
+          <label class="f filter-fiat"><span>With</span><select id="fiat"><option value="ETB">Birr (ETB)</option><option value="USD">US Dollar (USD)</option></select></label>
+          <label class="f filter-amount"><span>Amount</span><input id="amount" type="number" min="0" step="any" placeholder="Any"><select id="amountUnit"><option value="fiat">ETB</option><option value="crypto">USDT</option></select></label>
+          <label class="f filter-payment"><span>Pay with</span>
             <select id="payment">
               <option value="all">Any method</option><option>Commercial Bank of Ethiopia</option><option>Tele Birr</option><option>CBE Birr</option><option>Bank of Abyssinia</option><option>Awash Bank</option><option>Dashen Bank</option>
             </select>
           </label>
           <button class="icon-btn" id="reset" title="Reset filters" aria-label="Reset filters">↺</button>
         </div>
+        <div class="mobile-cards" id="mobileCards"></div>
         <div class="table-wrap">
           <table>
             <thead><tr><th>Advertiser</th><th>Rate</th><th>Available / limit</th><th>Payment</th><th>Merchant history</th><th><span class="sr">Action</span></th></tr></thead>
@@ -367,8 +427,48 @@ tbody tr[data-row-offer]:hover{background:var(--soft)}
   const body = document.body;
   let currentUser = null;
   let ready = false;
+  let authInitialized = false;
+  let authExpiryPending = false;
+  const LAST_ACTIVE_KEY = "etp2p_auth_last_active";
+  const MAX_IDLE_MS = 24 * 60 * 60 * 1000;
 
-  if (window.innerWidth < 800) body.classList.add("side-closed");
+  function touchAuthSession() {
+    if (!currentUser) return;
+    const now = Date.now();
+    const lastActive = Number(localStorage.getItem(LAST_ACTIVE_KEY)) || 0;
+    if (now - lastActive > 60 * 1000) localStorage.setItem(LAST_ACTIVE_KEY, String(now));
+  }
+
+  async function expireIdleSession() {
+    if (authExpiryPending) return;
+    authExpiryPending = true;
+    localStorage.removeItem(LAST_ACTIVE_KEY);
+    try { await supabase.auth.signOut(); } catch (_) {}
+    setUser(null);
+    authExpiryPending = false;
+  }
+
+  function enforceIdleExpiry() {
+    if (!currentUser) return;
+    const lastActive = Number(localStorage.getItem(LAST_ACTIVE_KEY)) || 0;
+    if (!lastActive || Date.now() - lastActive > MAX_IDLE_MS) {
+      void expireIdleSession();
+      return;
+    }
+    touchAuthSession();
+  }
+
+  function recordAuthActivity() {
+    if (!currentUser) return;
+    const lastActive = Number(localStorage.getItem(LAST_ACTIVE_KEY)) || 0;
+    if (!lastActive || Date.now() - lastActive > MAX_IDLE_MS) {
+      void expireIdleSession();
+      return;
+    }
+    touchAuthSession();
+  }
+
+  if (window.innerWidth < 800) { body.classList.add("side-closed"); $("sideToggle").setAttribute("aria-expanded", "false"); } else { $("sideToggle").setAttribute("aria-expanded", "true"); }
 
   function setUser(user) {
     const wasSignedIn = Boolean(currentUser);
@@ -396,22 +496,71 @@ tbody tr[data-row-offer]:hover{background:var(--soft)}
   }
 
   async function signOut() {
+    localStorage.removeItem(LAST_ACTIVE_KEY);
     await supabase.auth.signOut();
     location.reload();
   }
 
   document.querySelectorAll(".js-signin").forEach((b) => { b.onclick = () => $("login").click(); });
   document.querySelectorAll(".js-signup").forEach((b) => { b.onclick = () => $("signup").click(); });
-  $("sideToggle").onclick = () => body.classList.toggle("side-closed");
+  $("sideToggle").onclick = () => {
+    const closed = body.classList.toggle("side-closed");
+    $("sideToggle").setAttribute("aria-expanded", String(!closed));
+  };
+  $("drawerBackdrop").onclick = () => {
+    body.classList.add("side-closed");
+    $("sideToggle").setAttribute("aria-expanded", "false");
+  };
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && window.innerWidth < 800 && !body.classList.contains("side-closed")) {
+      body.classList.add("side-closed");
+      $("sideToggle").setAttribute("aria-expanded", "false");
+    }
+  });
   $("sidebar").addEventListener("click", (event) => {
-    if (window.innerWidth < 800 && event.target.closest("a,button")) body.classList.add("side-closed");
+    if (window.innerWidth < 800 && event.target.closest("a,button")) {
+      body.classList.add("side-closed");
+      $("sideToggle").setAttribute("aria-expanded", "false");
+    }
   });
   $("menuProfile").onclick = () => $("signup").click();
-  $("menuAccount").onclick = openAccount;
+  $("menuAccount").onclick = () => currentUser ? openAccount() : openSignIn();
   $("menuSignOut").onclick = signOut;
 
-  supabase.auth.onAuthStateChange((_event, session) => setUser(session?.user));
-  supabase.auth.getSession().then(({ data: { session } }) => { setUser(session?.user); ready = true; });
+  supabase.auth.onAuthStateChange((event, session) => {
+    if (!authInitialized) return;
+    const user = session?.user || null;
+    if (event === "SIGNED_IN" && user) localStorage.setItem(LAST_ACTIVE_KEY, String(Date.now()));
+    if (event === "SIGNED_OUT") localStorage.removeItem(LAST_ACTIVE_KEY);
+    setUser(user);
+  });
+  supabase.auth.getSession().then(async ({ data: { session } }) => {
+    const user = session?.user || null;
+    const lastActive = Number(localStorage.getItem(LAST_ACTIVE_KEY)) || 0;
+    if (user && (!lastActive || Date.now() - lastActive > MAX_IDLE_MS)) {
+      localStorage.removeItem(LAST_ACTIVE_KEY);
+      try { await supabase.auth.signOut(); } catch (_) {}
+      setUser(null);
+    } else {
+      if (user) localStorage.setItem(LAST_ACTIVE_KEY, String(Date.now()));
+      else localStorage.removeItem(LAST_ACTIVE_KEY);
+      setUser(user);
+    }
+    ready = true;
+    authInitialized = true;
+  }).catch(() => {
+    localStorage.removeItem(LAST_ACTIVE_KEY);
+    setUser(null);
+    ready = true;
+    authInitialized = true;
+  });
+  ["pointerdown", "keydown", "touchstart"].forEach((name) => document.addEventListener(name, recordAuthActivity, { passive: true }));
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden") recordAuthActivity();
+    else enforceIdleExpiry();
+  });
+  window.addEventListener("focus", enforceIdleExpiry);
+  window.addEventListener("pageshow", (event) => { if (event.persisted) enforceIdleExpiry(); });
 </script>
 </body>
 </html>

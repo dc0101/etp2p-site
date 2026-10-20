@@ -219,16 +219,14 @@ function closeModal() {
 }
 
 function initTheme() {
-  const savedTheme = localStorage.getItem("theme");
-  if (savedTheme === "dark") {
-    document.body.classList.add("dark-mode");
-  } else {
-    document.body.classList.remove("dark-mode");
-  }
+  const isDark = localStorage.getItem("theme") !== "light";
+  document.body.classList.toggle("dark-mode", isDark);
+  document.body.classList.toggle("light-mode", !isDark);
 }
 
 function toggleDarkMode() {
   const isDark = document.body.classList.toggle("dark-mode");
+  document.body.classList.toggle("light-mode", !isDark);
   localStorage.setItem("theme", isDark ? "dark" : "light");
   notify(isDark ? "Dark mode enabled" : "Light mode enabled");
 }
@@ -737,7 +735,6 @@ function openSignIn() {
   `;
   $("modalFoot").innerHTML = `
     <button class="btn primary" id="loginWithPasswordBtn" style="margin-bottom:8px;">Sign In</button>
-    <button class="btn outline" id="sendMagicLink">Send Magic Link Instead</button>
   `;
   
   $("loginWithPasswordBtn").onclick = async () => {
@@ -768,17 +765,6 @@ function openSignIn() {
     if (error) notify(error.message);
     else {
       notify("Password recovery instructions sent to your email!");
-      closeModal();
-    }
-  };
-
-  $("sendMagicLink").onclick = async () => {
-    const email = $("emailInput").value.trim();
-    if (!email) return notify("Please enter your email.");
-    const { error } = await supabase.auth.signInWithOtp({ email, options: { emailRedirectTo: AUTH_REDIRECT } });
-    if (error) notify(error.message);
-    else {
-      notify("Sign-in link sent to your email!");
       closeModal();
     }
   };
@@ -1349,11 +1335,14 @@ function initApp() {
 
   const themeBtn = $("themeToggleBtn");
   if (themeBtn) {
-    themeBtn.textContent = document.body.classList.contains("dark-mode") ? "☀️ Light" : "🌙 Dark";
-    themeBtn.onclick = () => {
-      toggleDarkMode();
-      themeBtn.textContent = document.body.classList.contains("dark-mode") ? "☀️ Light" : "🌙 Dark";
+    const syncThemeButton = () => {
+      const isDark = document.body.classList.contains("dark-mode");
+      themeBtn.textContent = isDark ? "☀️ Light" : "🌙 Dark";
+      themeBtn.setAttribute("aria-label", isDark ? "Switch to light theme" : "Switch to dark theme");
+      themeBtn.title = isDark ? "Switch to light theme" : "Switch to dark theme";
     };
+    syncThemeButton();
+    themeBtn.onclick = () => { toggleDarkMode(); syncThemeButton(); };
   }
 
   supabase.auth.getSession().then(({ data: { session } }) => {

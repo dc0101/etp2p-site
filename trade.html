@@ -6,29 +6,31 @@
   <title>Escrow Trade Order - Etp2p</title>
   <style>
     :root {
-      --bg: #f3f6f4;
+      color-scheme: dark;
+      --bg: #0b0e11;
+      --panel: #181a20;
+      --soft: #1e2329;
+      --line: #2b3139;
+      --text: #eaecef;
+      --muted: #848e9c;
+      --green: #fcd535;
+      --green-ink: #181a20;
+      --amber: #f59e0b;
+      --amber-soft: #2e2008;
+    }
+
+    body.light-mode {
+      color-scheme: light;
+      --bg: #f5f7fa;
       --panel: #fff;
-      --soft: #eaf3ee;
-      --line: #d9e2dd;
-      --text: #17241d;
-      --muted: #5d7167;
-      --green: #1f9d6b;
+      --soft: #f1f3f5;
+      --line: #e5e7eb;
+      --text: #1e2329;
+      --muted: #707a8a;
+      --green: #c99a00;
       --green-ink: #fff;
       --amber: #d97706;
       --amber-soft: #fef3c7;
-    }
-
-    body.dark-mode {
-      --bg: #0b1510;
-      --panel: #101e17;
-      --soft: #162a20;
-      --line: #223a2d;
-      --text: #e6f0ea;
-      --muted: #8ba396;
-      --green: #2fb583;
-      --green-ink: #04120b;
-      --amber: #f59e0b;
-      --amber-soft: #2e2008;
     }
 
     * { box-sizing: border-box; }
@@ -37,7 +39,7 @@
       background: var(--bg);
       color: var(--text);
       font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-      transition: background .22s cubic-bezier(0.16, 1, 0.3, 1), color .22s ease;
+      transition: background-color .24s cubic-bezier(0.16, 1, 0.3, 1), color .24s ease;
       -webkit-tap-highlight-color: transparent;
     }
 
@@ -138,7 +140,7 @@
     }
     .status-pending { background: var(--amber-soft); color: var(--amber); border: 1px solid var(--amber); }
     .status-paid { background: rgba(59,130,246,0.15); color: #3b82f6; border: 1px solid #3b82f6; }
-    .status-completed { background: rgba(31,157,107,0.15); color: var(--green); border: 1px solid var(--green); }
+    .status-completed { background: rgba(252,213,53,0.14); color: var(--green); border: 1px solid var(--green); }
 
     .card {
       border: 1px solid var(--line);
@@ -309,12 +311,28 @@
       100% { opacity: 1; transform: scale(1) translateY(0); }
     }
 
+    .topbar, .card, .escrow-banner, .detail-item, .bank-detail-row, .orders-sheet {
+      transition: background-color .24s ease, color .24s ease, border-color .24s ease, box-shadow .24s ease;
+    }
+
     @media (max-width: 600px) {
-      .topbar { padding: 10px 14px; }
-      .page { padding: 14px 10px 40px; }
+      .topbar { padding: 8px 10px; gap: 6px; }
+      .topbar > div { gap: 6px !important; }
+      .topbar .btn.small { padding: 6px 8px; font-size: 11px; }
+      .topbar .brand { font-size: 15px; }
+      .page { width: 100%; min-width: 0; padding: 14px 10px 40px; }
       .card { padding: 14px; }
+      .escrow-banner { padding: 14px; }
+      .grid-2 { grid-template-columns: minmax(0, 1fr); }
       .bank-detail-row { flex-direction: column; align-items: flex-start; gap: 8px; }
       .copy-btn { width: 100%; justify-content: center; }
+      #orderActions .btn { min-width: 0 !important; width: 100%; }
+    }
+    @media (max-width: 380px) {
+      .topbar .brand { display: none; }
+      .topbar > div:first-child { flex: 1; }
+      .topbar > div:last-child { margin-left: auto; }
+      .orders-sheet { padding: 16px; }
     }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -388,7 +406,7 @@
       <div class="card-title">
         <div style="display: flex; align-items: center; gap: 8px;">
           <span>🏦 Seller Bank Account Details</span>
-          <span style="font-size: 11px; padding: 2px 8px; border-radius: 999px; background: rgba(31,157,107,0.15); color: var(--green); font-weight: 700;">Verified Trader</span>
+          <span style="font-size: 11px; padding: 2px 8px; border-radius: 999px; background: rgba(252,213,53,0.14); color: var(--green); font-weight: 700;">Verified Trader</span>
         </div>
       </div>
       <p style="font-size: 13px; color: var(--muted); margin: 0 0 10px;">
@@ -510,14 +528,15 @@
 
     // Theme Management
     function initTheme() {
-      const saved = localStorage.getItem("theme");
-      const isDark = saved === "dark";
+      const isDark = localStorage.getItem("theme") !== "light";
       document.body.classList.toggle("dark-mode", isDark);
+      document.body.classList.toggle("light-mode", !isDark);
       $("themeToggleBtn").textContent = isDark ? "☀️ Light" : "🌙 Dark";
     }
 
     $("themeToggleBtn").onclick = () => {
       const isDark = document.body.classList.toggle("dark-mode");
+      document.body.classList.toggle("light-mode", !isDark);
       localStorage.setItem("theme", isDark ? "dark" : "light");
       $("themeToggleBtn").textContent = isDark ? "☀️ Light" : "🌙 Dark";
     };
@@ -756,7 +775,40 @@
       if (e.target === $("myOrdersModal")) closeOrdersModal();
     };
 
-    loadTradeData();
+    const LAST_ACTIVE_KEY = "etp2p_auth_last_active";
+    const MAX_IDLE_MS = 24 * 60 * 60 * 1000;
+    let tradeSessionReady = false;
+    function touchTradeSession() {
+      if (tradeSessionReady) localStorage.setItem(LAST_ACTIVE_KEY, String(Date.now()));
+    }
+    async function validateTradeSessionActivity() {
+      if (!tradeSessionReady) return;
+      const lastActive = Number(localStorage.getItem(LAST_ACTIVE_KEY)) || 0;
+      if (!lastActive || Date.now() - lastActive > MAX_IDLE_MS) {
+        tradeSessionReady = false;
+        localStorage.removeItem(LAST_ACTIVE_KEY);
+        try { await supabase.auth.signOut(); } catch (_) {}
+        window.location.replace("./");
+        return;
+      }
+      touchTradeSession();
+    }
+    async function authorizeTradePage() {
+      const { data: { session } } = await supabase.auth.getSession();
+      const lastActive = Number(localStorage.getItem(LAST_ACTIVE_KEY)) || 0;
+      if (!session?.user || !lastActive || Date.now() - lastActive > MAX_IDLE_MS) {
+        localStorage.removeItem(LAST_ACTIVE_KEY);
+        try { await supabase.auth.signOut(); } catch (_) {}
+        window.location.replace("./");
+        return;
+      }
+      tradeSessionReady = true;
+      touchTradeSession();
+      loadTradeData();
+    }
+    ["pointerdown", "keydown", "touchstart"].forEach((name) => document.addEventListener(name, validateTradeSessionActivity, { passive: true }));
+    document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") validateTradeSessionActivity(); });
+    authorizeTradePage().catch(() => window.location.replace("./"));
   </script>
 </body>
 </html>
