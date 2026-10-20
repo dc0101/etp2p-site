@@ -129,9 +129,10 @@ body.side-closed #sideToggle svg{transform:rotate(180deg)}
 .badge.theme-accent{border-color:var(--accent);color:var(--accent)}
 .filters{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:16px}
 .seg{display:flex;padding:4px;border:1px solid var(--line);border-radius:10px;background:var(--soft)}
-.seg button{padding:8px 18px;border:0;border-radius:7px;background:transparent;font-weight:700;color:var(--muted);cursor:pointer}
-.seg button.on[data-side=buy]{background:var(--accent);color:#0a1018}
-.seg button.on[data-side=sell]{background:var(--sell);color:#fff}
+.seg button{padding:8px 18px;border:0;border-radius:7px;background:transparent;font-weight:700;color:var(--muted);cursor:pointer;transform:scale(.98);transition:background-color .26s cubic-bezier(.2,.8,.2,1),color .22s ease,transform .24s cubic-bezier(.2,.8,.2,1),box-shadow .24s ease;will-change:background-color,transform}
+.seg button:active{transform:scale(.95)}
+.seg button.on[data-side=buy]{background:var(--accent);color:#0a1018;transform:scale(1);box-shadow:0 3px 12px var(--app-glow,rgba(240,185,11,.18))}
+.seg button.on[data-side=sell]{background:var(--sell);color:#fff;transform:scale(1);box-shadow:0 3px 12px rgba(246,70,93,.22)}
 .f{display:flex;align-items:center;gap:8px;padding:6px 12px;border:1px solid var(--line);border-radius:10px}
 .f>span{color:var(--muted);font-size:13px}
 .f select,.f input{border:0;outline:0;font-weight:700}
