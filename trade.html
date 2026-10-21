@@ -858,15 +858,30 @@
     window.addEventListener("pageshow", enforceTradeSessionExpiry);
     window.addEventListener("storage", (event) => {
       if (
-        event.key === LAST_ACTIVE_KEY ||
-        event.key === SESSION_STARTED_KEY ||
-        event.key === SESSION_USER_KEY ||
-        event.key === REAUTH_REQUIRED_KEY
-      ) enforceTradeSessionExpiry();
+        event.key !== LAST_ACTIVE_KEY &&
+        event.key !== SESSION_STARTED_KEY &&
+        event.key !== SESSION_USER_KEY &&
+        event.key !== REAUTH_REQUIRED_KEY
+      ) return;
+
+      if (
+        tradeSessionReady &&
+        !localStorage.getItem(LAST_ACTIVE_KEY) &&
+        localStorage.getItem(REAUTH_REQUIRED_KEY) !== "1"
+      ) {
+        tradeSessionReady = false;
+        window.location.replace("./");
+        return;
+      }
+      enforceTradeSessionExpiry();
     });
     window.setInterval(enforceTradeSessionExpiry, 5000);
     supabase.auth.onAuthStateChange((event) => {
-      if (event === "SIGNED_OUT" && tradeSessionReady) void expireTradeSession();
+      if (event === "SIGNED_OUT" && tradeSessionReady) {
+        tradeSessionReady = false;
+        const reauthRequired = localStorage.getItem(REAUTH_REQUIRED_KEY) === "1";
+        window.location.replace(reauthRequired ? "./?reauth=1" : "./");
+      }
     });
     authorizeTradePage().catch(() => window.location.replace("./?reauth=1"));
   </script>
