@@ -1356,7 +1356,8 @@ function initApp() {
   supabase.auth.getSession().then(async ({ data: { session } }) => {
     const params = new URLSearchParams(window.location.search);
     const queryRequiresReauth = params.get("reauth") === "1";
-    const requiredReauth = queryRequiresReauth || consumeReauthenticationRequired();
+    const storedRequiresReauth = consumeReauthenticationRequired();
+    const requiredReauth = queryRequiresReauth || storedRequiresReauth;
     if (params.has("reauth")) {
       const cleanUrl = new URL(window.location.href);
       cleanUrl.searchParams.delete("reauth");
