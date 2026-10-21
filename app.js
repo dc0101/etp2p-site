@@ -6,6 +6,11 @@ import {
   updateAd,
   listMyAds,
 } from "./services/supabase.js";
+import {
+  clearSessionTracking,
+  consumeReauthenticationRequired,
+  REAUTH_REQUIRED_KEY,
+} from "./services/session.js";
 
 "use strict";
 
@@ -291,8 +296,6 @@ function openSignUp() {
     <label class="label" for="regCountry">Country</label>
     <div class="entry"><input id="regCountry" type="text" value="Ethiopia"></div>
 
-    <label class="label" for="regAddress">Physical Address</label>
-    <div class="entry"><input id="regAddress" type="text" placeholder="Addis Ababa"></div>
   `;
   $("modalFoot").innerHTML = `<button class="btn primary" id="submitSignUp">Register Account</button>`;
 
@@ -301,8 +304,6 @@ function openSignUp() {
     const password = $("regPassword").value;
     const fullName = $("regFullName").value.trim();
     const country = $("regCountry").value.trim();
-    const address = $("regAddress").value.trim();
-
     if (!email || !password || !fullName) {
       return notify("Please fill in all required fields.");
     }
@@ -318,7 +319,6 @@ function openSignUp() {
         data: {
           full_name: fullName,
           country: country,
-          address: address,
           public_handle: fullName
         }
       }
@@ -333,8 +333,7 @@ function openSignUp() {
           public_handle: fullName,
           full_name: fullName,
           bank_account_name: fullName,
-          country: country,
-          address: address
+          country: country
         });
       }
       showVerificationStep(email);
@@ -366,7 +365,7 @@ async function openProfile() {
   const meta = authUser.user_metadata || {};
   const fullName = profile?.full_name || meta.full_name || "Kirubel Desta";
   const country = profile?.country || meta.country || "Ethiopia";
-  const address = profile?.address || meta.address || "Addis Ababa";
+  const address = profile?.address || meta.address || "";
   const bankName = profile?.bank_name || "Commercial Bank of Ethiopia";
   const bankAccountNum = profile?.bank_account_number || "100028491823";
 
@@ -375,7 +374,7 @@ async function openProfile() {
     <p class="sec-note">Your legal name is permanently locked to prevent third-party payment scams.</p>
     <div class="summary" style="margin-bottom:8px;"><div><b>Email:</b> ${esc(authUser.email)}</div></div>
     <div class="summary" style="margin-bottom:8px;"><div><b>Country:</b> ${esc(country)}</div></div>
-    <div class="summary" style="margin-bottom:8px;"><div><b>Address:</b> ${esc(address)}</div></div>
+    <div class="summary" style="margin-bottom:8px;"><div><b>Address:</b> ${address ? esc(address) : "Not provided"}</div></div>
     
     <hr style="border:0; border-top:1px solid var(--line); margin:15px 0;">
     
@@ -414,7 +413,6 @@ async function openProfile() {
       bank_name: selectedBank,
       bank_account_number: accNum,
       country,
-      address,
       public_handle: fullName
     });
 
@@ -501,6 +499,8 @@ function openSecurity() {
   };
 
   $("signOutBtn").onclick = async () => {
+    clearSessionTracking();
+    localStorage.removeItem(REAUTH_REQUIRED_KEY);
     await supabase.auth.signOut();
     notify("Signed out successfully.");
     closeModal();
@@ -1353,8 +1353,24 @@ function initApp() {
     };
   }
 
-  supabase.auth.getSession().then(({ data: { session } }) => {
-    updateAccount(session?.user || null);
+  supabase.auth.getSession().then(async ({ data: { session } }) => {
+    const params = new URLSearchParams(window.location.search);
+    const queryRequiresReauth = params.get("reauth") === "1";
+    const requiredReauth = queryRequiresReauth || consumeReauthenticationRequired();
+    if (params.has("reauth")) {
+      const cleanUrl = new URL(window.location.href);
+      cleanUrl.searchParams.delete("reauth");
+      history.replaceState(null, "", cleanUrl.pathname + cleanUrl.search + cleanUrl.hash);
+    }
+
+    if (requiredReauth) {
+      if (session) await supabase.auth.signOut();
+      clearSessionTracking();
+      updateAccount(null);
+      openSignIn();
+    } else {
+      updateAccount(session?.user || null);
+    }
     loadAds(false);
   });
 
