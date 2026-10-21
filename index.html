@@ -565,7 +565,7 @@ body.theme-changing .theme-toggle{animation:themeTogglePop .42s cubic-bezier(.2,
     }
     if (event === "SIGNED_IN" && user) beginSessionTracking(session);
     if (user && (!ensureSessionTracking(session) || isSessionExpired())) {
-      void expireIdleSession();
+      window.setTimeout(() => { void expireIdleSession(); }, 0);
       return;
     }
     setUser(user);
