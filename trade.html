@@ -532,6 +532,17 @@
 
   <script type="module">
     import { supabase } from "./services/supabase.js";
+    import {
+      LAST_ACTIVE_KEY,
+      REAUTH_REQUIRED_KEY,
+      SESSION_STARTED_KEY,
+      SESSION_USER_KEY,
+      clearSessionTracking,
+      ensureSessionTracking,
+      isSessionExpired,
+      markReauthenticationRequired,
+      recordSessionActivity,
+    } from "./services/session.js";
 
     const $ = (id) => document.getElementById(id);
 
@@ -798,40 +809,66 @@
       if (e.target === $("myOrdersModal")) closeOrdersModal();
     };
 
-    const LAST_ACTIVE_KEY = "etp2p_auth_last_active";
-    const MAX_IDLE_MS = 24 * 60 * 60 * 1000;
     let tradeSessionReady = false;
-    function touchTradeSession() {
-      if (tradeSessionReady) localStorage.setItem(LAST_ACTIVE_KEY, String(Date.now()));
+    let tradeExpiryPending = false;
+
+    async function expireTradeSession() {
+      if (tradeExpiryPending) return;
+      tradeExpiryPending = true;
+      tradeSessionReady = false;
+      markReauthenticationRequired();
+      clearSessionTracking();
+      try { await supabase.auth.signOut(); } catch (_) {}
+      window.location.replace("./?reauth=1");
     }
-    async function validateTradeSessionActivity() {
+
+    function enforceTradeSessionExpiry() {
+      if (tradeSessionReady && isSessionExpired()) void expireTradeSession();
+    }
+
+    function recordTradeActivity() {
       if (!tradeSessionReady) return;
-      const lastActive = Number(localStorage.getItem(LAST_ACTIVE_KEY)) || 0;
-      if (!lastActive || Date.now() - lastActive > MAX_IDLE_MS) {
-        tradeSessionReady = false;
-        localStorage.removeItem(LAST_ACTIVE_KEY);
-        try { await supabase.auth.signOut(); } catch (_) {}
-        window.location.replace("./");
-        return;
-      }
-      touchTradeSession();
+      if (isSessionExpired() || !recordSessionActivity()) void expireTradeSession();
     }
+
     async function authorizeTradePage() {
       const { data: { session } } = await supabase.auth.getSession();
-      const lastActive = Number(localStorage.getItem(LAST_ACTIVE_KEY)) || 0;
-      if (!session?.user || !lastActive || Date.now() - lastActive > MAX_IDLE_MS) {
-        localStorage.removeItem(LAST_ACTIVE_KEY);
-        try { await supabase.auth.signOut(); } catch (_) {}
-        window.location.replace("./");
+      if (!session?.user) {
+        clearSessionTracking();
+        markReauthenticationRequired();
+        window.location.replace("./?reauth=1");
+        return;
+      }
+      if (!ensureSessionTracking(session) || isSessionExpired()) {
+        await expireTradeSession();
         return;
       }
       tradeSessionReady = true;
-      touchTradeSession();
+      if (!recordSessionActivity()) {
+        await expireTradeSession();
+        return;
+      }
       loadTradeData();
     }
-    ["pointerdown", "keydown", "touchstart"].forEach((name) => document.addEventListener(name, validateTradeSessionActivity, { passive: true }));
-    document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") validateTradeSessionActivity(); });
-    authorizeTradePage().catch(() => window.location.replace("./"));
+
+    ["pointerdown", "pointermove", "mousemove", "click", "keydown", "touchstart", "wheel", "scroll"]
+      .forEach((name) => document.addEventListener(name, recordTradeActivity, { passive: true }));
+    document.addEventListener("visibilitychange", enforceTradeSessionExpiry);
+    window.addEventListener("focus", enforceTradeSessionExpiry);
+    window.addEventListener("pageshow", enforceTradeSessionExpiry);
+    window.addEventListener("storage", (event) => {
+      if (
+        event.key === LAST_ACTIVE_KEY ||
+        event.key === SESSION_STARTED_KEY ||
+        event.key === SESSION_USER_KEY ||
+        event.key === REAUTH_REQUIRED_KEY
+      ) enforceTradeSessionExpiry();
+    });
+    window.setInterval(enforceTradeSessionExpiry, 5000);
+    supabase.auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_OUT" && tradeSessionReady) void expireTradeSession();
+    });
+    authorizeTradePage().catch(() => window.location.replace("./?reauth=1"));
   </script>
 </body>
 </html>
