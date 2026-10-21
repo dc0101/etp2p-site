@@ -55,6 +55,7 @@ body:not(.booting) .landing .fade{animation:up .8s ease both;animation-delay:var
 .mock dl{display:grid;grid-template-columns:1fr auto;gap:8px 16px;margin:0 0 18px}
 .mock dt{color:var(--muted)}
 .mock dd{margin:0;font-weight:700;text-align:right}
+.mock .blurred-rate{filter:blur(4px);user-select:none}
 .bars,.bar-labels{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
 .bars i{height:5px;border-radius:3px;background:var(--line);animation:lit .5s ease forwards}
 .bars i:nth-child(1){animation-delay:.8s}.bars i:nth-child(2){animation-delay:1.8s}.bars i:nth-child(3){animation-delay:2.8s}
@@ -302,7 +303,7 @@ body.theme-changing .theme-toggle{animation:themeTogglePop .42s cubic-bezier(.2,
       <div class="mock fade" style="--d:.4s" aria-label="Example order">
         <div class="mock-head">Buy USDT <small>Escrow · example</small></div>
         <dl>
-          <dt>Price</dt><dd>Br 186.00 / USDT</dd>
+          <dt>Price</dt><dd>Br <span class="blurred-rate" aria-label="Exchange rate obscured">186.00</span> / USDT</dd>
           <dt>Amount</dt><dd>5.00 USDT</dd>
           <dt>Total</dt><dd>Br 930.00</dd>
           <dt>Payment</dt><dd>Telebirr</dd>
@@ -448,10 +449,21 @@ body.theme-changing .theme-toggle{animation:themeTogglePop .42s cubic-bezier(.2,
     els.forEach(function (e) { io.observe(e); });
   })();
 </script>
-<script type="module" src="./app.js?v=how-p2p-modal-20261020"></script>
+<script type="module" src="./app.js?v=session-timeout-20261021"></script>
 <script type="module">
   // Visitor/app switch, sidebar and extra landing-page buttons. Profile and Security reuse app.js dialogs.
   import { supabase } from "./services/supabase.js";
+  import {
+    LAST_ACTIVE_KEY,
+    SESSION_STARTED_KEY,
+    REAUTH_REQUIRED_KEY,
+    beginSessionTracking,
+    clearSessionTracking,
+    ensureSessionTracking,
+    isSessionExpired,
+    markReauthenticationRequired,
+    recordSessionActivity,
+  } from "./services/session.js";
 
   const $ = (id) => document.getElementById(id);
   const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -460,44 +472,25 @@ body.theme-changing .theme-toggle{animation:themeTogglePop .42s cubic-bezier(.2,
   let ready = false;
   let authInitialized = false;
   let authExpiryPending = false;
-  const LAST_ACTIVE_KEY = "etp2p_auth_last_active";
-  const MAX_IDLE_MS = 24 * 60 * 60 * 1000;
   const isTouchLayout = () => window.innerWidth < 800 || window.matchMedia("(pointer: coarse)").matches;
-
-  function touchAuthSession() {
-    if (!currentUser) return;
-    const now = Date.now();
-    const lastActive = Number(localStorage.getItem(LAST_ACTIVE_KEY)) || 0;
-    if (now - lastActive > 60 * 1000) localStorage.setItem(LAST_ACTIVE_KEY, String(now));
-  }
 
   async function expireIdleSession() {
     if (authExpiryPending) return;
     authExpiryPending = true;
-    localStorage.removeItem(LAST_ACTIVE_KEY);
+    markReauthenticationRequired();
+    clearSessionTracking();
     try { await supabase.auth.signOut(); } catch (_) {}
     setUser(null);
-    authExpiryPending = false;
+    window.location.replace("./?reauth=1");
   }
 
   function enforceIdleExpiry() {
-    if (!currentUser) return;
-    const lastActive = Number(localStorage.getItem(LAST_ACTIVE_KEY)) || 0;
-    if (!lastActive || Date.now() - lastActive > MAX_IDLE_MS) {
-      void expireIdleSession();
-      return;
-    }
-    touchAuthSession();
+    if (currentUser && isSessionExpired()) void expireIdleSession();
   }
 
   function recordAuthActivity() {
     if (!currentUser) return;
-    const lastActive = Number(localStorage.getItem(LAST_ACTIVE_KEY)) || 0;
-    if (!lastActive || Date.now() - lastActive > MAX_IDLE_MS) {
-      void expireIdleSession();
-      return;
-    }
-    touchAuthSession();
+    if (isSessionExpired() || !recordSessionActivity()) void expireIdleSession();
   }
 
   if (isTouchLayout()) { body.classList.add("side-closed"); $("sideToggle").setAttribute("aria-expanded", "false"); } else { $("sideToggle").setAttribute("aria-expanded", "true"); }
@@ -528,7 +521,8 @@ body.theme-changing .theme-toggle{animation:themeTogglePop .42s cubic-bezier(.2,
   }
 
   async function signOut() {
-    localStorage.removeItem(LAST_ACTIVE_KEY);
+    clearSessionTracking();
+    localStorage.removeItem(REAUTH_REQUIRED_KEY);
     await supabase.auth.signOut();
     location.reload();
   }
@@ -562,37 +556,50 @@ body.theme-changing .theme-toggle{animation:themeTogglePop .42s cubic-bezier(.2,
   supabase.auth.onAuthStateChange((event, session) => {
     if (!authInitialized) return;
     const user = session?.user || null;
-    if (event === "SIGNED_IN" && user) localStorage.setItem(LAST_ACTIVE_KEY, String(Date.now()));
-    if (event === "SIGNED_OUT") localStorage.removeItem(LAST_ACTIVE_KEY);
+    if (event === "SIGNED_OUT") {
+      const requiresReauth = localStorage.getItem(REAUTH_REQUIRED_KEY) === "1";
+      clearSessionTracking();
+      setUser(null);
+      if (requiresReauth) window.location.replace("./?reauth=1");
+      return;
+    }
+    if (event === "SIGNED_IN" && user) beginSessionTracking(session);
+    if (user && (!ensureSessionTracking(session) || isSessionExpired())) {
+      void expireIdleSession();
+      return;
+    }
     setUser(user);
   });
+
   supabase.auth.getSession().then(async ({ data: { session } }) => {
     const user = session?.user || null;
-    const lastActive = Number(localStorage.getItem(LAST_ACTIVE_KEY)) || 0;
-    if (user && (!lastActive || Date.now() - lastActive > MAX_IDLE_MS)) {
-      localStorage.removeItem(LAST_ACTIVE_KEY);
-      try { await supabase.auth.signOut(); } catch (_) {}
-      setUser(null);
-    } else {
-      if (user) localStorage.setItem(LAST_ACTIVE_KEY, String(Date.now()));
-      else localStorage.removeItem(LAST_ACTIVE_KEY);
+    if (user && ensureSessionTracking(session) && !isSessionExpired()) {
+      recordSessionActivity();
       setUser(user);
+    } else if (user) {
+      await expireIdleSession();
+    } else {
+      clearSessionTracking();
+      setUser(null);
     }
     ready = true;
     authInitialized = true;
   }).catch(() => {
-    localStorage.removeItem(LAST_ACTIVE_KEY);
+    clearSessionTracking();
     setUser(null);
     ready = true;
     authInitialized = true;
   });
-  ["pointerdown", "keydown", "touchstart"].forEach((name) => document.addEventListener(name, recordAuthActivity, { passive: true }));
-  document.addEventListener("visibilitychange", () => {
-    if (document.visibilityState === "hidden") recordAuthActivity();
-    else enforceIdleExpiry();
-  });
+
+  ["pointerdown", "pointermove", "mousemove", "click", "keydown", "touchstart", "wheel", "scroll"]
+    .forEach((name) => document.addEventListener(name, recordAuthActivity, { passive: true }));
+  document.addEventListener("visibilitychange", enforceIdleExpiry);
   window.addEventListener("focus", enforceIdleExpiry);
-  window.addEventListener("pageshow", (event) => { if (event.persisted) enforceIdleExpiry(); });
+  window.addEventListener("pageshow", enforceIdleExpiry);
+  window.addEventListener("storage", (event) => {
+    if (event.key === LAST_ACTIVE_KEY || event.key === SESSION_STARTED_KEY) enforceIdleExpiry();
+  });
+  window.setInterval(enforceIdleExpiry, 5000);
 </script>
 </body>
 </html>
