@@ -370,168 +370,47 @@
     </div>
   </header>
 
-  <main class="page">
-    <!-- Escrow Banner -->
+    <main class="page">
+    <style>
+      .status-cancelled { background: rgba(246,70,93,.12); color: #f6465d; border: 1px solid #f6465d; }
+      .notice { margin: 14px 0 0; padding: 12px 14px; border: 1px solid var(--line); border-left: 3px solid var(--green); border-radius: 10px; background: var(--soft); font-size: 13px; }
+      .msg { display: none; margin-top: 14px; padding: 12px 14px; border-radius: 10px; font-weight: 600; }
+      .msg.show { display: block; }
+      .msg.error { background: rgba(246,70,93,.12); color: #f6465d; }
+      .msg.ok { background: var(--soft); border: 1px solid var(--green); }
+    </style>
+
     <div class="escrow-banner">
       <div>
-        <div style="font-size: 16px; font-weight: 800; display: flex; align-items: center; gap: 6px;">
-          <span>🛡️ Escrow Protected Order</span>
-        </div>
+        <div style="font-size: 16px; font-weight: 800;">🛡️ Escrow-tracked order</div>
         <div style="font-size: 13px; color: var(--muted); margin-top: 2px;">
-          Crypto collateral is safely locked in Etp2p smart contract escrow. Do not release crypto until fiat is verified.
+          While this order is open, the amount is reserved on the ad. Etp2p does not move money or USDT for you.
         </div>
       </div>
       <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-        <div id="statusBadge" class="status-badge status-pending">
-          Pending Payment
-        </div>
-        <button class="btn small outline" id="bannerMyOrdersBtn" style="background:var(--panel);">
-          📋 My Orders
-        </button>
+        <div id="statusBadge" class="status-badge status-pending">Loading…</div>
+        <button class="btn small outline" id="bannerMyOrdersBtn" style="background:var(--panel);">📋 My Orders</button>
       </div>
     </div>
 
-    <!-- Order Summary Card -->
-    <div class="card">
-      <div class="card-title">
-        <span>Order Details</span>
-        <span id="orderIdText" style="font-size: 13px; color: var(--muted); font-weight: 600; font-family: monospace;"></span>
-      </div>
-
-      <div class="grid-2">
-        <div class="detail-item">
-          <div class="detail-label">Fiat Amount to Pay</div>
-          <div class="detail-val" id="fiatValText">Br 0.00 ETB</div>
-        </div>
-        <div class="detail-item">
-          <div class="detail-label">Crypto in Escrow</div>
-          <div class="detail-val green" id="cryptoValText">0.00 USDT</div>
-        </div>
-        <div class="detail-item">
-          <div class="detail-label">Exchange Rate</div>
-          <div class="detail-val" id="rateText">Br 0.00 / USDT</div>
-        </div>
-        <div class="detail-item">
-          <div class="detail-label">Trading Merchant</div>
-          <div class="detail-val" id="merchantText">Etp2p Merchant</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Seller Bank Account & Payment Instructions Card -->
-    <div class="card">
-      <div class="card-title">
-        <div style="display: flex; align-items: center; gap: 8px;">
-          <span>🏦 Seller Bank Account Details</span>
-          <span style="font-size: 11px; padding: 2px 8px; border-radius: 999px; background: rgba(252,213,53,0.14); color: var(--green); font-weight: 700;">Verified Trader</span>
-        </div>
-      </div>
-      <p style="font-size: 13px; color: var(--muted); margin: 0 0 10px;">
-        Please transfer the exact fiat amount to the verified seller bank details below. Funds in escrow will be released immediately after payment is verified.
-      </p>
-
-      <div class="bank-card-container">
-        <!-- Bank Name -->
-        <div class="bank-detail-row">
-          <div class="bank-row-info">
-            <span class="bank-row-lbl">Bank / Payment Service</span>
-            <span class="bank-row-val" id="sellerBankName">Commercial Bank of Ethiopia</span>
-          </div>
-          <button class="copy-btn" data-copy-target="sellerBankName">Copy</button>
-        </div>
-
-        <!-- Account Holder Name -->
-        <div class="bank-detail-row">
-          <div class="bank-row-info">
-            <span class="bank-row-lbl">Account Holder (Legal Name)</span>
-            <span class="bank-row-val" id="sellerAccountName">Kirubel Desta</span>
-          </div>
-          <button class="copy-btn" data-copy-target="sellerAccountName">Copy</button>
-        </div>
-
-        <!-- Account Number / Phone -->
-        <div class="bank-detail-row">
-          <div class="bank-row-info">
-            <span class="bank-row-lbl">Account Number / Phone (Telebirr)</span>
-            <span class="bank-row-val" id="sellerAccountNumber" style="color:var(--green); font-size:16px;">100028491823</span>
-          </div>
-          <button class="copy-btn" data-copy-target="sellerAccountNumber">Copy</button>
-        </div>
-
-        <!-- Exact Amount -->
-        <div class="bank-detail-row">
-          <div class="bank-row-info">
-            <span class="bank-row-lbl">Exact Amount to Pay</span>
-            <span class="bank-row-val" id="exactFiatTransfer" style="font-size: 17px; color: var(--text);">Br 1,860.00 ETB</span>
-          </div>
-          <button class="copy-btn" data-copy-target="exactFiatTransfer">Copy</button>
-        </div>
-
-        <!-- Reference / Memo -->
-        <div class="bank-detail-row">
-          <div class="bank-row-info">
-            <span class="bank-row-lbl">Transfer Reference / Memo (Order ID)</span>
-            <span class="bank-row-val" id="transferMemo" style="color:var(--amber);">#TRD-DEMO</span>
-          </div>
-          <button class="copy-btn" data-copy-target="transferMemo">Copy</button>
-        </div>
-      </div>
-
-      <div style="background: rgba(217,119,6,0.1); border: 1px solid rgba(217,119,6,0.25); border-radius: 10px; padding: 12px 14px; font-size: 12px; color: var(--text); line-height: 1.4; margin-top: 14px;">
-        ⚠️ <b>Important Banking Rule:</b> Do <b>NOT</b> write "crypto", "USDT", or "Bitcoin" in the payment remarks/memo to prevent bank delays or regulatory account freezes. Use the Order ID above as memo.
-      </div>
-
-      <!-- Action Buttons -->
-      <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px;" id="orderActions">
-        <button class="btn primary" id="markPaidBtn" style="flex: 1; min-width: 200px;">
-          ✓ I Have Paid the Seller
-        </button>
-        <button class="btn" id="releaseBtn" style="display: none; background: #059669; color: #fff;">
-          Release USDT to Buyer
-        </button>
-        <button class="btn outline" id="actionMyOrdersBtn">
-          📋 My Orders
-        </button>
-        <button class="btn outline" id="disputeBtn">
-          Need Help / Dispute
-        </button>
-      </div>
-    </div>
-
-    <!-- Live Trade Chat -->
-    <div class="card">
-      <div class="card-title">Trade Chat & Payment Proof</div>
-      
-      <div class="chat-box" id="chatBox">
-        <div class="chat-bubble merchant">
-          <strong>Merchant:</strong> Hello! The crypto is locked in escrow. Please transfer payment using the bank details above and click "I Have Paid the Seller".
-        </div>
-      </div>
-
-      <form id="chatForm" style="display: flex; gap: 8px;">
-        <input id="chatInput" type="text" placeholder="Type message or transaction reference..." style="flex: 1; padding: 10px 14px; border: 1px solid var(--line); border-radius: 10px; background: transparent; color: var(--text); outline: 0;">
-        <button type="submit" class="btn primary small">Send</button>
-      </form>
-    </div>
+    <div class="card" id="orderCard"><p style="margin:0; color:var(--muted);">Loading your order…</p></div>
+    <div class="msg" id="orderMsg" role="status"></div>
   </main>
 
-  <!-- My Orders Modal Drawer -->
   <div class="modal-overlay" id="myOrdersModal">
     <div class="orders-sheet">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid var(--line); padding-bottom: 12px;">
-        <h3 style="margin: 0; font-size: 18px; font-weight: 800;">My P2P Escrow Orders</h3>
+        <h3 style="margin: 0; font-size: 18px; font-weight: 800;">My P2P orders</h3>
         <button class="btn small outline" id="closeOrdersModalBtn" style="padding: 4px 10px; border-radius: 8px;">✕ Close</button>
       </div>
-      <div id="ordersModalList" style="display: flex; flex-direction: column; gap: 10px;">
-        <!-- Filled dynamically -->
-      </div>
+      <div id="ordersModalList" style="display: flex; flex-direction: column; gap: 10px;"></div>
     </div>
   </div>
 
   <div id="toast" class="toast"></div>
 
   <script type="module">
-    import { supabase } from "./services/supabase.js";
+    import { supabase, transitionOrder, listMyOrders } from "./services/supabase.js";
     import {
       LAST_ACTIVE_KEY,
       REAUTH_REQUIRED_KEY,
@@ -545,6 +424,13 @@
     } from "./services/session.js";
 
     const $ = (id) => document.getElementById(id);
+    const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+    function money(value, currency) {
+      const n = Number(value) || 0;
+      if (currency === "ETB") return "Br " + new Intl.NumberFormat("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n);
+      return new Intl.NumberFormat("en-US", { style: "currency", currency, minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n);
+    }
 
     function notify(msg) {
       const toast = $("toast");
@@ -554,7 +440,7 @@
       setTimeout(() => toast.classList.remove("show"), 3200);
     }
 
-    // Theme Management
+    // Theme
     function initTheme() {
       const isDark = localStorage.getItem("theme") !== "light";
       document.body.classList.toggle("dark-mode", isDark);
@@ -577,238 +463,168 @@
     initTheme();
     $("themeToggleBtn").setAttribute("aria-pressed", String(document.body.classList.contains("dark-mode")));
 
-    // Copy to clipboard with instant tactile feedback
-    document.querySelectorAll("[data-copy-target]").forEach((btn) => {
-      btn.onclick = () => {
-        const targetId = btn.getAttribute("data-copy-target");
-        const el = $(targetId);
-        if (!el) return;
-        const text = el.textContent.trim().replace(/^Br\s*/, '').replace(/\s*ETB$/, '');
-        navigator.clipboard?.writeText(text);
-        const originalText = btn.textContent;
-        btn.textContent = "✓ Copied!";
-        btn.classList.add("copied");
-        notify(`Copied to clipboard: ${text}`);
-        setTimeout(() => {
-          btn.textContent = originalText;
-          btn.classList.remove("copied");
-        }, 1800);
-      };
-    });
+    // Order state comes only from the database (p2p_orders).
+    const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    const tradeId = new URLSearchParams(window.location.search).get("id");
+    const STATUS = {
+      pending: ["Waiting for payment", "status-pending"],
+      payment_marked: ["Payment marked", "status-paid"],
+      completed: ["Completed", "status-completed"],
+      cancelled: ["Cancelled", "status-cancelled"],
+    };
+    let user = null;
+    let order = null;
+    let busy = false;
+    let pollTimer = null;
 
-    // Load Order
-    const params = new URLSearchParams(window.location.search);
-    const tradeId = params.get("id") || "demo_order";
-
-    let trade = null;
-
-    async function loadTradeData() {
-      // 1. Try LocalStorage for instant rendering
-      try {
-        const local = localStorage.getItem(`etp2p_trade_${tradeId}`);
-        if (local) trade = JSON.parse(local);
-      } catch (e) {}
-
-      // 2. Try Supabase
-      try {
-        const { data: dbTrade } = await supabase
-          .from("trades")
-          .select("*")
-          .eq("id", tradeId)
-          .maybeSingle();
-
-        if (dbTrade) {
-          trade = {
-            id: dbTrade.id,
-            cryptoAmount: dbTrade.crypto_amount,
-            fiatAmount: dbTrade.fiat_amount,
-            status: dbTrade.status || "pending_payment",
-            paymentMethod: dbTrade.payment_method || "Commercial Bank of Ethiopia",
-            sellerName: "Merchant-" + (dbTrade.seller_id ? dbTrade.seller_id.substring(0, 6) : "P2P"),
-            price: dbTrade.crypto_amount ? Math.round(dbTrade.fiat_amount / dbTrade.crypto_amount) : 186,
-            bankName: dbTrade.payment_method || "Commercial Bank of Ethiopia",
-            sellerAccountName: "Kirubel Desta",
-            sellerAccountNumber: `1000${Math.floor(100000 + Math.random() * 900000)}`
-          };
-        }
-      } catch (err) {
-        console.warn("Could not query supabase trades:", err);
-      }
-
-      // 3. Fallback mock if completely fresh
-      if (!trade) {
-        trade = {
-          id: tradeId,
-          cryptoAmount: 10.0,
-          fiatAmount: 1860,
-          currency: "ETB",
-          crypto: "USDT",
-          price: 186.0,
-          sellerName: "Dawit_Crypto (Top Merchant)",
-          paymentMethod: "Commercial Bank of Ethiopia",
-          bankName: "Commercial Bank of Ethiopia",
-          sellerAccountName: "Dawit Haile",
-          sellerAccountNumber: "100028491823",
-          status: "pending_payment",
-        };
-      }
-
-      renderTrade();
-      updateSavedOrdersList();
+    function showMsg(text, isError) {
+      const box = $("orderMsg");
+      box.textContent = text;
+      box.className = "msg show " + (isError ? "error" : "ok");
     }
 
-    function renderTrade() {
-      $("orderIdText").textContent = `#${trade.id}`;
-      $("fiatValText").textContent = `Br ${(trade.fiatAmount || 0).toLocaleString()} ${trade.currency || "ETB"}`;
-      $("cryptoValText").textContent = `${trade.cryptoAmount || 0} ${trade.crypto || "USDT"}`;
-      $("rateText").textContent = `Br ${trade.price || 186} / ${trade.crypto || "USDT"}`;
-      $("merchantText").textContent = trade.sellerName || "Etp2p Merchant";
+    function clearMsg() { $("orderMsg").className = "msg"; }
 
-      // Populate Seller Bank Account Details
-      $("sellerBankName").textContent = trade.bankName || trade.paymentMethod || "Commercial Bank of Ethiopia";
-      $("sellerAccountName").textContent = trade.sellerAccountName || trade.sellerName || "Kirubel Desta";
-      $("sellerAccountNumber").textContent = trade.sellerAccountNumber || "100028491823";
-      $("exactFiatTransfer").textContent = `Br ${(trade.fiatAmount || 0).toLocaleString()} ${trade.currency || "ETB"}`;
-      $("transferMemo").textContent = trade.id;
-
-      updateStatusUI(trade.status);
+    function friendlyError(message) {
+      if (/authenticator/i.test(message)) return "This step needs two-factor authentication (an authenticator) on your account. " + message;
+      return message;
     }
 
-    function updateStatusUI(status) {
-      const badge = $("statusBadge");
-      const markPaidBtn = $("markPaidBtn");
-      const releaseBtn = $("releaseBtn");
-
-      if (status === "payment_marked" || status === "paid") {
-        badge.className = "status-badge status-paid";
-        badge.textContent = "Payment Marked - Waiting Seller";
-        markPaidBtn.textContent = "✓ Payment Marked (Waiting Confirmation)";
-        markPaidBtn.disabled = true;
-        releaseBtn.style.display = "inline-flex";
-      } else if (status === "completed" || status === "released") {
-        badge.className = "status-badge status-completed";
-        badge.textContent = "Completed & Escrow Released";
-        markPaidBtn.style.display = "none";
-        releaseBtn.style.display = "none";
-      } else {
-        badge.className = "status-badge status-pending";
-        badge.textContent = "Pending Payment - Escrow Locked";
-        markPaidBtn.textContent = "✓ I Have Paid the Seller";
-        markPaidBtn.disabled = false;
-        releaseBtn.style.display = "none";
-      }
+    function guidance(role, o) {
+      const fiat = money(o.fiat_amount, o.currency);
+      const coin = Number(o.crypto_amount).toLocaleString("en-US", { maximumFractionDigits: 8 }) + " " + o.asset;
+      if (o.status === "completed") return "The seller completed this order. " + coin + " was marked as delivered to the buyer.";
+      if (o.status === "cancelled") return "This order was cancelled and the reserved " + o.asset + " went back to the ad.";
+      if (o.status === "pending" && role === "buyer") return "Payment details are not shown in Etp2p yet. Do not send money until you have confirmed the seller's account name and number through a channel you trust. After you have paid " + fiat + " using " + o.payment_method + ", press “I’ve paid”.";
+      if (o.status === "pending" && role === "seller") return "Waiting for the buyer to pay " + fiat + " using " + o.payment_method + ". You can complete the order once they mark it as paid.";
+      if (o.status === "payment_marked" && role === "buyer") return "You marked this order as paid. The seller will confirm and complete it.";
+      return "The buyer says " + fiat + " was sent using " + o.payment_method + ". Check that the money is in your account and send the " + coin + " before you complete the order.";
     }
 
-    $("markPaidBtn").onclick = async () => {
-      trade.status = "payment_marked";
-      updateStatusUI(trade.status);
-      try {
-        localStorage.setItem(`etp2p_trade_${tradeId}`, JSON.stringify(trade));
-        await supabase.from("trades").update({ status: "payment_marked" }).eq("id", tradeId);
-      } catch (e) {}
+    function actionsFor(role, o) {
+      if (o.status === "pending" && role === "buyer") return [["mark_paid", "I’ve paid", true], ["cancel", "Cancel order", false]];
+      if (o.status === "pending" && role === "seller") return [["cancel", "Cancel order", false]];
+      if (o.status === "payment_marked" && role === "seller") return [["complete", "Complete order (money received)", true]];
+      return [];
+    }
 
-      // Add chat message
-      const msg = document.createElement("div");
-      msg.className = "chat-bubble you";
-      msg.innerHTML = "<strong>You:</strong> I have completed the transfer. Please check your bank account and release crypto from escrow.";
-      $("chatBox").appendChild(msg);
-
-      notify("Payment marked! The seller has been notified to release funds.");
+    const CONFIRM = {
+      mark_paid: "Confirm that you have already sent the payment to the seller.",
+      complete: "Complete this order? This cannot be undone. Only continue if the money is in your account and you have sent the USDT.",
+      cancel: "Cancel this order?",
+    };
+    const DONE = {
+      mark_paid: "Marked as paid. The seller can now confirm.",
+      complete: "Order completed.",
+      cancel: "Order cancelled.",
     };
 
-    $("releaseBtn").onclick = async () => {
-      trade.status = "completed";
-      updateStatusUI(trade.status);
-      try {
-        localStorage.setItem(`etp2p_trade_${tradeId}`, JSON.stringify(trade));
-        await supabase.from("trades").update({ status: "completed" }).eq("id", tradeId);
-      } catch (e) {}
+    function render() {
+      const o = order;
+      const role = user.id === o.buyer_id ? "buyer" : "seller";
+      const [label, cls] = STATUS[o.status] || [o.status, "status-pending"];
+      $("statusBadge").className = "status-badge " + cls;
+      $("statusBadge").textContent = label;
 
-      const msg = document.createElement("div");
-      msg.className = "chat-bubble merchant";
-      msg.innerHTML = "<strong>System Escrow:</strong> Payment confirmed! The USDT has been released to your liquid wallet balance.";
-      $("chatBox").appendChild(msg);
+      const items = [
+        ["You are the", role === "buyer" ? "Buyer" : "Seller"],
+        ["Fiat amount", money(o.fiat_amount, o.currency)],
+        [o.asset + " in this order", Number(o.crypto_amount).toLocaleString("en-US", { maximumFractionDigits: 8 })],
+        ["Rate", money(o.price_per_unit, o.currency) + " / " + o.asset],
+        ["Payment method", o.payment_method],
+        ["Merchant", o.merchant_handle],
+      ];
+      const actions = actionsFor(role, o);
 
-      notify("Crypto released from escrow successfully! Trade completed.");
-    };
+      $("orderCard").innerHTML =
+        '<div class="card-title"><span>Order details</span><span style="font-size:13px;color:var(--muted);font-weight:600;font-family:monospace;">#' + esc(o.id.slice(0, 8)) + "</span></div>" +
+        '<div class="grid-2">' + items.map(([l, v]) => '<div class="detail-item"><div class="detail-label">' + esc(l) + '</div><div class="detail-val">' + esc(v) + "</div></div>").join("") + "</div>" +
+        '<p class="notice">' + esc(guidance(role, o)) + "</p>" +
+        (actions.length
+          ? '<div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:16px;">' + actions.map(([a, text, primary]) => '<button class="btn' + (primary ? " primary" : " outline") + '" data-action="' + a + '">' + esc(text) + "</button>").join("") + "</div>"
+          : "");
 
-    $("disputeBtn").onclick = () => {
-      notify("Support dispute opened. An Etp2p escrow arbitrator has joined the chat.");
-    };
+      if (o.status === "completed" || o.status === "cancelled") stopPolling();
+    }
 
-    $("chatForm").onsubmit = (e) => {
-      e.preventDefault();
-      const val = $("chatInput").value.trim();
-      if (!val) return;
-
-      const bubble = document.createElement("div");
-      bubble.className = "chat-bubble you";
-      bubble.innerHTML = `<strong>You:</strong> ${val}`;
-      $("chatBox").appendChild(bubble);
-      $("chatInput").value = "";
-      $("chatBox").scrollTop = $("chatBox").scrollHeight;
-    };
-
-    // My Orders Drawer Modal
-    function updateSavedOrdersList() {
-      const orders = JSON.parse(localStorage.getItem("etp2p_saved_orders") || "[]");
-      $("ordersCountBadge").textContent = Math.max(1, orders.length);
-
-      const listContainer = $("ordersModalList");
-      if (!listContainer) return;
-
-      if (!orders.length) {
-        listContainer.innerHTML = `
-          <div style="padding:14px; border:1px solid var(--line); border-radius:12px; background:var(--soft);">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-              <b>Order #${trade.id} (Current Order)</b>
-              <span class="status-badge status-pending">Active</span>
-            </div>
-            <div style="font-size:12px; color:var(--muted); margin-top:4px;">
-              ${trade.cryptoAmount} USDT • Br ${(trade.fiatAmount || 0).toLocaleString()} ETB
-            </div>
-          </div>
-        `;
+    async function loadOrder() {
+      const { data, error } = await supabase.from("p2p_orders").select("*").eq("id", tradeId).maybeSingle();
+      if (error) {
+        $("orderCard").innerHTML = "<p>Could not load this order: " + esc(error.message) + '</p><p><a href="./">Back to the marketplace</a></p>';
+        stopPolling();
         return;
       }
-
-      listContainer.innerHTML = orders.map((ord) => `
-        <div style="padding:12px; border:1px solid var(--line); border-radius:12px; background:var(--panel); display:flex; justify-content:space-between; align-items:center; gap:8px;">
-          <div>
-            <div style="display:flex; align-items:center; gap:6px;">
-              <b style="font-size:13px;">#${ord.id}</b>
-              <span style="font-size:10px; font-weight:700; padding:1px 6px; border-radius:999px; background:var(--soft); color:var(--green); text-transform:uppercase;">
-                ${ord.status.replace(/_/g, ' ')}
-              </span>
-            </div>
-            <div style="font-size:12px; color:var(--muted); margin-top:3px;">
-              ${ord.cryptoAmount} ${ord.crypto || 'USDT'} • Br ${(ord.fiatAmount || 0).toLocaleString()} • ${ord.sellerName || 'Merchant'}
-            </div>
-          </div>
-          <a href="/trade.html?id=${encodeURIComponent(ord.id)}" class="btn small primary" style="text-decoration:none; padding:4px 10px; font-size:12px;">
-            Open →
-          </a>
-        </div>
-      `).join('');
+      if (!data) {
+        $("orderCard").innerHTML = '<p>This order was not found, or it belongs to another account.</p><p><a href="./">Back to the marketplace</a></p>';
+        $("statusBadge").textContent = "Not found";
+        stopPolling();
+        return;
+      }
+      order = data;
+      render();
     }
 
-    function openOrdersModal() {
-      updateSavedOrdersList();
+    async function runAction(action) {
+      if (busy) return;
+      if (!confirm(CONFIRM[action])) return;
+      busy = true;
+      document.querySelectorAll("[data-action]").forEach((b) => { b.disabled = true; });
+      clearMsg();
+
+      const { error } = await transitionOrder(order.id, action);
+      busy = false;
+      if (error) {
+        showMsg(friendlyError(error.message), true);
+        document.querySelectorAll("[data-action]").forEach((b) => { b.disabled = false; });
+        return;
+      }
+      showMsg(DONE[action], false);
+      await loadOrder();
+    }
+
+    function stopPolling() {
+      if (pollTimer) clearInterval(pollTimer);
+      pollTimer = null;
+    }
+
+    $("orderCard").onclick = (event) => {
+      const button = event.target.closest("[data-action]");
+      if (button) runAction(button.dataset.action);
+    };
+
+    // My orders drawer (from the database, not browser storage)
+    async function openOrdersModal() {
       $("myOrdersModal").classList.add("show");
+      const list = $("ordersModalList");
+      list.innerHTML = '<p style="color:var(--muted);">Loading…</p>';
+      const { data, error } = await listMyOrders();
+      if (error) {
+        list.innerHTML = '<p style="color:var(--muted);">Could not load your orders: ' + esc(error.message) + "</p>";
+        return;
+      }
+      const rows = data || [];
+      $("ordersCountBadge").textContent = rows.length;
+      list.innerHTML = rows.length
+        ? rows.map((o) => {
+            const amount = Number(o.crypto_amount).toLocaleString("en-US", { maximumFractionDigits: 8 });
+            const label = (STATUS[o.status] || [o.status])[0];
+            return '<div style="padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--panel);display:flex;justify-content:space-between;align-items:center;gap:8px;">' +
+              '<div><div style="display:flex;align-items:center;gap:6px;"><b style="font-size:13px;font-family:monospace;">#' + esc(o.id.slice(0, 8)) + "</b>" +
+              '<span style="font-size:10px;font-weight:700;padding:1px 6px;border-radius:999px;background:var(--soft);color:var(--green);">' + esc(label) + "</span></div>" +
+              '<div style="font-size:12px;color:var(--muted);margin-top:3px;">' + esc(amount) + " " + esc(o.asset) + " · " + money(o.fiat_amount, o.currency) + "</div></div>" +
+              '<a href="trade.html?id=' + encodeURIComponent(o.id) + '" class="btn small primary" style="text-decoration:none;padding:4px 10px;font-size:12px;">Open →</a></div>';
+          }).join("")
+        : '<p style="color:var(--muted);">You have no orders yet.</p>';
     }
 
-    function closeOrdersModal() {
-      $("myOrdersModal").classList.remove("show");
-    }
+    function closeOrdersModal() { $("myOrdersModal").classList.remove("show"); }
 
     $("headerMyOrdersBtn").onclick = openOrdersModal;
     $("bannerMyOrdersBtn").onclick = openOrdersModal;
-    $("actionMyOrdersBtn").onclick = openOrdersModal;
     $("closeOrdersModalBtn").onclick = closeOrdersModal;
-    $("myOrdersModal").onclick = (e) => {
-      if (e.target === $("myOrdersModal")) closeOrdersModal();
-    };
+    $("myOrdersModal").onclick = (e) => { if (e.target === $("myOrdersModal")) closeOrdersModal(); };
 
+    // Session handling (unchanged behavior: sign in again after the idle limit)
     let tradeSessionReady = false;
     let tradeExpiryPending = false;
 
@@ -831,6 +647,17 @@
       if (isSessionExpired() || !recordSessionActivity()) void expireTradeSession();
     }
 
+    async function startPage(session) {
+      user = session.user;
+      if (!tradeId || !UUID_RE.test(tradeId)) {
+        $("orderCard").innerHTML = '<p>No order selected.</p><p><a href="./">Back to the marketplace</a></p>';
+        $("statusBadge").textContent = "No order";
+        return;
+      }
+      await loadOrder();
+      pollTimer = setInterval(() => { if (!document.hidden && !busy) loadOrder(); }, 10000);
+    }
+
     async function authorizeTradePage() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.user) {
@@ -848,7 +675,7 @@
         await expireTradeSession();
         return;
       }
-      loadTradeData();
+      startPage(session);
     }
 
     ["pointerdown", "pointermove", "mousemove", "click", "keydown", "touchstart", "wheel", "scroll"]
