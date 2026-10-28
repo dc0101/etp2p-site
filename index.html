@@ -49,7 +49,15 @@ body:not(.signed-in) .shell,body.signed-in .landing{display:none}
 .cta .btn{padding:14px 26px;font-size:16px}
 .landing .fade{opacity:0}
 body:not(.booting) .landing .fade{animation:up .8s ease both;animation-delay:var(--d,0s)}
+.hero-offers{display:grid;gap:14px;min-width:0}
 .mock{padding:20px;border:1px solid var(--line);border-radius:16px;background:var(--panel);box-shadow:0 20px 60px rgba(0,0,0,.5);animation:float 6s ease-in-out infinite}
+.service-preview{padding:18px 20px;border:1px solid var(--line);border-radius:16px;background:linear-gradient(135deg,var(--panel),var(--soft));box-shadow:0 12px 34px rgba(0,0,0,.22);animation:float 6s ease-in-out infinite;animation-delay:-2s}
+.service-preview .mock-head{margin-bottom:12px}
+.service-preview-list{display:grid;gap:9px}
+.service-preview-list>div{display:flex;align-items:center;gap:10px;font-weight:700;font-size:14px}
+.service-dot{width:8px;height:8px;flex:none;border-radius:50%;background:var(--accent);box-shadow:0 0 12px color-mix(in srgb,var(--accent) 55%,transparent)}
+.service-preview p{margin:12px 0;color:var(--muted);font-size:12px}
+.service-preview .btn{display:inline-flex;text-decoration:none}
 .mock-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;font-size:18px;font-weight:800}
 .mock-head small{color:var(--buy);font-size:12px;font-weight:700}
 .mock dl{display:grid;grid-template-columns:1fr auto;gap:8px 16px;margin:0 0 18px}
@@ -80,6 +88,10 @@ body:not(.booting) .landing .fade{animation:up .8s ease both;animation-delay:var
 .card h3{margin:0 0 8px;font-size:18px}
 .card p{margin:0;color:var(--muted)}
 .card.f::before{content:"";display:block;width:32px;height:4px;margin-bottom:14px;border-radius:2px;background:var(--accent)}
+#services .service-card{display:flex;flex-direction:column;align-items:flex-start;min-width:0}
+#services .service-card h3{margin-top:0}
+#services .service-card p{width:100%;overflow-wrap:anywhere}
+#services .service-card .service-soon{margin-top:auto}
 .num{display:grid;place-items:center;width:34px;height:34px;margin-bottom:14px;border-radius:50%;background:var(--accent);color:var(--ink);font-weight:800}
 .faq{max-width:760px;margin:0 auto}
 .faq details{padding:16px 0;border-bottom:1px solid var(--line)}
@@ -306,6 +318,7 @@ body.theme-changing .theme-toggle{animation:themeTogglePop .42s cubic-bezier(.2,
           <button class="btn js-signin">Sign in</button>
         </div>
       </div>
+      <div class="hero-offers">
       <div class="mock fade" style="--d:.4s" aria-label="Example order">
         <div class="mock-head">Buy USDT <small>Escrow · example</small></div>
         <dl>
@@ -317,8 +330,28 @@ body.theme-changing .theme-toggle{animation:themeTogglePop .42s cubic-bezier(.2,
         <div class="bars"><i></i><i></i><i></i></div>
         <div class="bar-labels"><span>Order created</span><span>Payment marked</span><span>USDT released</span></div>
       </div>
+      <div class="service-preview fade" style="--d:.5s">
+        <div class="mock-head"><span>More Etp2p services</span><small>Coming soon</small></div>
+        <div class="service-preview-list">
+          <div><span class="service-dot"></span><span>Forex broker deposits &amp; withdrawals</span></div>
+          <div><span class="service-dot"></span><span>Prop-firm challenges with USDT</span></div>
+        </div>
+        <p>These services are not available for transactions yet.</p>
+        <a class="btn small" href="#services">Explore services</a>
+      </div>
+    </div>
     </section>
   </div>
+
+  <section class="sec" id="services">
+    <h2 class="reveal">More ways to use Etp2p</h2>
+    <p class="lead reveal" style="--d:.1s">Additional services are in development. They are not available for transactions yet.</p>
+    <div class="grid">
+      <div class="card f reveal service-card"><h3>Forex broker deposits</h3><p>Plan to fund supported forex broker accounts through Etp2p. Broker connections and payment processing are not available yet.</p><span class="service-soon">Coming soon</span></div>
+      <div class="card f reveal service-card" style="--d:.1s"><h3>Forex broker withdrawals</h3><p>Plan to request withdrawals from supported forex broker accounts. No broker or withdrawal integration is currently active.</p><span class="service-soon">Coming soon</span></div>
+      <div class="card f reveal service-card" style="--d:.2s"><h3>Prop-firm challenges with USDT</h3><p>Plan to browse and purchase prop-firm challenge accounts using USDT. No prop-firm provider or payment integration is currently active.</p><span class="service-soon">Coming soon</span></div>
+    </div>
+  </section>
 
   <section class="sec" id="features">
     <h2 class="reveal">Built for safe local trading</h2>
@@ -328,16 +361,6 @@ body.theme-changing .theme-toggle{animation:themeTogglePop .42s cubic-bezier(.2,
       <div class="card f reveal" style="--d:.1s"><h3>Local payment methods</h3><p>Commercial Bank of Ethiopia, Telebirr, CBE Birr, Bank of Abyssinia, Awash Bank and Dashen Bank.</p></div>
       <div class="card f reveal" style="--d:.2s"><h3>Your price, your limits</h3><p>Post an ad with your own rate, minimum and maximum order size, and the payment methods you accept.</p></div>
       <div class="card f reveal" style="--d:.3s"><h3>Protected accounts</h3><p>Two-factor authentication (an authenticator app) protects posting ads and updating orders.</p></div>
-    </div>
-  </section>
-
-  <section class="sec" id="services">
-    <h2 class="reveal">More ways to use Etp2p</h2>
-    <p class="lead reveal" style="--d:.1s">Additional services are in development. They are not available for transactions yet.</p>
-    <div class="grid">
-      <div class="card f reveal"><h3>Forex broker deposits</h3><p>Plan to fund supported forex broker accounts through Etp2p. Broker connections and payment processing are not available yet.</p><span class="service-soon">Coming soon</span></div>
-      <div class="card f reveal" style="--d:.1s"><h3>Forex broker withdrawals</h3><p>Plan to request withdrawals from supported forex broker accounts. No broker or withdrawal integration is currently active.</p><span class="service-soon">Coming soon</span></div>
-      <div class="card f reveal" style="--d:.2s"><h3>Prop-firm challenges with USDT</h3><p>Plan to browse and purchase prop-firm challenge accounts using USDT. No prop-firm provider or payment integration is currently active.</p><span class="service-soon">Coming soon</span></div>
     </div>
   </section>
 
