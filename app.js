@@ -834,7 +834,7 @@ const ORDER_STATUS = {
   cancelled: "Cancelled",
 };
 
-async function renderOrdersList() {
+async async function renderOrdersList() {
   const box = $("orders");
   if (!box) return;
   if (!authUser) {
