@@ -748,4 +748,411 @@ function render() {
     if (!shown.length) {
       $("rows").innerHTML = '<tr><td colspan="6">' + emptyHtml + "</td></tr>";
     } else {
-      $("rows").innerHTML =
+      $("rows").innerHTML = shown.map((offer) => {
+        const index = offers.indexOf(offer);
+        return '<tr data-row-offer="' + index + '" tabindex="0" aria-label="Open offer from ' + esc(offer.name) + '">' +
+          '<td><div class="merchant"><div class="micon">' + esc(offer.ini) + '</div><div><div class="mname">' + esc(offer.name) + '</div><div class="meta">Etp2p merchant</div></div></div></td>' +
+          '<td><div class="price">' + money(offer.price, offer.currency) + ' <small>/ ' + esc(coinVal) + "</small></div></td>" +
+          '<td><div class="limit">' + offer.stock.toLocaleString() + " " + esc(coinVal) + "<br><small>" + money(offer.min, offer.currency) + " – " + money(offer.max, offer.currency) + "</small></div></td>" +
+          '<td><div class="pays">' + payTags(offer) + "</div></td>" +
+          '<td><div class="rate">—<small>No history yet</small></div></td>' +
+          '<td><button class="btn small ' + classFor(offer) + '" data-offer="' + index + '" style="font-weight:800;">' + labelFor(offer) + "</button></td></tr>";
+      }).join("");
+
+      $("rows").querySelectorAll("[data-offer]").forEach((button) => button.onclick = (event) => {
+        event.stopPropagation();
+        openOffer(offers[Number(button.dataset.offer)]);
+      });
+
+      $("rows").querySelectorAll("[data-row-offer]").forEach((row) => {
+        const action = () => openOffer(offers[Number(row.dataset.rowOffer)]);
+        row.onclick = (event) => { if (!event.target.closest("button")) action(); };
+        row.onkeydown = (event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); action(); } };
+      });
+    }
+  }
+
+  const mobileCardsEl = $("mobileCards");
+  if (mobileCardsEl) {
+    if (!shown.length) {
+      mobileCardsEl.innerHTML = emptyHtml;
+    } else {
+      mobileCardsEl.innerHTML = shown.map((offer) => {
+        const index = offers.indexOf(offer);
+        return `
+          <div class="m-card" data-mobile-offer="${index}" tabindex="0" role="button" aria-label="Open offer from ${esc(offer.name)}">
+            <div class="m-card-top">
+              <div class="m-card-user">
+                <div class="micon">${esc(offer.ini)}</div>
+                <div>
+                  <div class="mname">${esc(offer.name)}</div>
+                  <div class="meta">Etp2p merchant</div>
+                </div>
+              </div>
+              <span class="badge" style="font-size:10px; padding:2px 8px; font-weight:800;">Escrow</span>
+            </div>
+            <div class="m-card-price">
+              <span class="m-price-num">${money(offer.price, offer.currency)}</span>
+              <span class="m-price-unit">/ ${esc(coinVal)}</span>
+            </div>
+            <div class="m-card-limits">
+              <div class="m-limit-row"><span class="m-limit-lbl">Available</span><span class="m-limit-val">${offer.stock.toLocaleString()} ${esc(coinVal)}</span></div>
+              <div class="m-limit-row"><span class="m-limit-lbl">Order limits</span><span class="m-limit-val">${money(offer.min, offer.currency)} – ${money(offer.max, offer.currency)}</span></div>
+            </div>
+            <div class="pays" style="margin:2px 0;">${payTags(offer)}</div>
+            <div class="m-card-foot">
+              <button class="btn ${classFor(offer)}" style="width:100%; justify-content:center; padding:12px; font-size:14px; border-radius:12px; font-weight:800;" data-offer="${index}">${labelFor(offer)} →</button>
+            </div>
+          </div>`;
+      }).join("");
+
+      mobileCardsEl.querySelectorAll("[data-offer]").forEach((button) => {
+        button.onclick = (event) => {
+          event.stopPropagation();
+          openOffer(offers[Number(button.dataset.offer)]);
+        };
+      });
+
+      mobileCardsEl.querySelectorAll("[data-mobile-offer]").forEach((card) => {
+        card.onclick = (event) => {
+          if (!event.target.closest("button")) openOffer(offers[Number(card.dataset.mobileOffer)]);
+        };
+      });
+    }
+  }
+
+  if ($("count")) $("count").textContent = offers.length.toLocaleString();
+}
+
+// Orders now come from the server, so there is no local counter any more.
+function updateOrdersBadge() {}
+
+const ORDER_STATUS = {
+  pending: "Waiting for payment",
+  payment_marked: "Payment marked",
+  completed: "Completed",
+  cancelled: "Cancelled",
+};
+
+async function renderOrdersList() {
+  const box = $("orders");
+  if (!box) return;
+  if (!authUser) {
+    box.innerHTML = '<div class="empty"><strong>Sign in to see your orders</strong>Your orders are stored on your account.</div>';
+    return;
+  }
+  box.innerHTML = '<div class="empty">Loading your orders…</div>';
+
+  let rows = [];
+  try {
+    const { data, error } = await listMyOrders();
+    if (error) throw error;
+    rows = data || [];
+  } catch (err) {
+    if (view === "orders") box.innerHTML = '<div class="empty"><strong>Could not load your orders.</strong>' + esc(err?.message || "Please try again.") + "</div>";
+    return;
+  }
+  if (view !== "orders") return;
+
+  if (!rows.length) {
+    box.innerHTML = '<div class="empty"><strong>No orders yet</strong>When you place an order on an offer, it appears here.<br><br><button class="btn primary small" id="backToMarketFromOrders">Browse offers</button></div>';
+    const backBtn = $("backToMarketFromOrders");
+    if (backBtn) backBtn.onclick = () => setView("market");
+    return;
+  }
+
+  box.innerHTML =
+    '<h3 style="margin:0 0 14px;font-size:18px;font-weight:800;">My P2P orders (' + rows.length + ")</h3>" +
+    '<div style="display:flex;flex-direction:column;gap:12px;">' +
+    rows.map((ord) => {
+      const role = ord.buyer_id === authUser.id ? "Buying" : "Selling";
+      const amount = Number(ord.crypto_amount).toLocaleString("en-US", { maximumFractionDigits: 8 });
+      return '<div style="padding:16px;border:1px solid var(--line);border-radius:14px;background:var(--panel);display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;">' +
+        '<div><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;"><b style="font-family:monospace;">#' + esc(String(ord.id).slice(0, 8)) + "</b>" +
+        '<span style="padding:3px 10px;border-radius:999px;font-size:11px;font-weight:800;background:var(--soft);color:var(--accent);">' + esc(ORDER_STATUS[ord.status] || ord.status) + "</span></div>" +
+        '<div style="font-size:13px;color:var(--muted);margin-top:6px;">' + role + " " + esc(amount) + " " + esc(ord.asset) + " for " + money(ord.fiat_amount, ord.currency) + " · " + esc(ord.payment_method) + "</div></div>" +
+        '<a href="trade.html?id=' + encodeURIComponent(ord.id) + '" class="btn primary small" style="text-decoration:none;font-weight:700;">Open order →</a></div>';
+    }).join("") + "</div>";
+}
+
+function displayView(nextView) {
+  view = nextView;
+  if ($("market")) $("market").classList.toggle("hide", view !== "market");
+  if ($("orders")) $("orders").classList.toggle("show", view !== "market");
+  
+  // Sync desktop navigation
+  document.querySelectorAll(".nav [data-view]").forEach((item) => item.classList.toggle("active", item.dataset.view === view));
+  
+  // Sync mobile bottom navigation
+  document.querySelectorAll(".m-nav-btn").forEach((btn) => {
+    btn.classList.toggle("active", btn.dataset.mview === view);
+  });
+
+  if ($("title")) $("title").textContent = view === "market" ? "Buy and sell crypto, your way." : view === "ads" ? "My P2P ads" : "Your P2P orders";
+  if ($("subtitle")) $("subtitle").textContent = view === "market" ? "Peer-to-peer USDT trading with escrow-tracked orders." : view === "ads" ? "Manage your persistent marketplace listings." : "Private order records for your account.";
+  
+  if (view === "market") {
+    render();
+  } else if (view === "orders") {
+    renderOrdersList();
+  }
+}
+
+function setView(nextView) {
+  displayView(nextView);
+}
+
+// Open the order dialog for an offer. Nothing exists until the server confirms it.
+function openEscrowOrderModal(offer) {
+  const coinVal = $("coin")?.value || "USDT";
+  const buying = side === "buy";
+  const methods = offer.pay || [];
+
+  if (!methods.length) {
+    notify("This offer has no payment methods, so it cannot be traded.");
+    return;
+  }
+  if (!window.crypto?.randomUUID) {
+    notify("Your browser is too old to place orders. Please update it.");
+    return;
+  }
+
+  // One key per dialog: if the request is retried, the database returns the same order.
+  const requestKey = crypto.randomUUID();
+  const defaultFiat = Math.min(Math.max(offer.min, 1000), offer.max);
+  const defaultCrypto = (defaultFiat / offer.price).toFixed(2);
+
+  $("modalTitle").textContent = (buying ? "Buy " : "Sell ") + coinVal + " from " + offer.name;
+  $("modalBody").innerHTML = `
+    <div style="margin-bottom:14px; padding:12px; background:var(--soft); border:1px solid var(--line); border-radius:12px;">
+      <div style="display:flex; justify-content:space-between; margin-bottom:6px;"><span style="font-size:12px; color:var(--muted);">Merchant</span><b style="font-size:13px;">${esc(offer.name)}</b></div>
+      <div style="display:flex; justify-content:space-between; margin-bottom:6px;"><span style="font-size:12px; color:var(--muted);">Rate</span><b style="font-size:14px; color:var(--green);">${money(offer.price, offer.currency)} / ${esc(coinVal)}</b></div>
+      <div style="display:flex; justify-content:space-between; margin-bottom:6px;"><span style="font-size:12px; color:var(--muted);">Order limits</span><span style="font-size:12px; font-weight:600;">${money(offer.min, offer.currency)} – ${money(offer.max, offer.currency)}</span></div>
+      <div style="display:flex; justify-content:space-between;"><span style="font-size:12px; color:var(--muted);">Available</span><span style="font-size:12px; font-weight:700;">${offer.stock.toLocaleString()} ${esc(coinVal)}</span></div>
+    </div>
+
+    <label class="label" for="tradeFiatInput">${buying ? "I will pay" : "I will receive"} (${esc(offer.currency)})</label>
+    <div class="entry"><input id="tradeFiatInput" type="number" step="any" value="${defaultFiat}"></div>
+
+    <label class="label" for="tradeCryptoInput" style="margin-top:10px;">${buying ? "I will receive" : "I will send"} (${esc(coinVal)})</label>
+    <div class="entry"><input id="tradeCryptoInput" type="number" step="any" value="${defaultCrypto}"></div>
+
+    <div id="tradeLimitWarning" style="display:none; color:#dc2626; font-size:11px; margin-top:6px; font-weight:600;"></div>
+
+    <label class="label" for="tradePaymentSelect" style="margin-top:10px;">Payment method</label>
+    <div class="entry">
+      <select id="tradePaymentSelect" style="width:100%; border:0; outline:0; font-weight:600; background:transparent;">
+        ${methods.map((pm) => `<option value="${esc(pm)}">${esc(pm)}</option>`).join("")}
+      </select>
+    </div>
+
+    <div style="margin-top:14px; padding:12px; background:var(--soft); border:1px solid var(--line); border-radius:10px; font-size:12px; line-height:1.4;">
+      <b>How this order works:</b> once the server accepts it, the amount is reserved on the ad. Etp2p does not move money or ${esc(coinVal)} for you. Pay the seller directly, then mark the order as paid on the next page.
+    </div>
+  `;
+
+  $("modalFoot").innerHTML = `
+    <button class="btn primary" id="confirmTradeBtn" style="margin-bottom:8px; font-weight:800; padding:12px;">Create order</button>
+    <button class="btn outline" id="cancelTradeBtn">Cancel</button>
+  `;
+
+  const fiatIn = $("tradeFiatInput");
+  const cryptoIn = $("tradeCryptoInput");
+  const warn = $("tradeLimitWarning");
+  const confirmBtn = $("confirmTradeBtn");
+
+  function validateLimits() {
+    const fiatVal = Number(fiatIn.value) || 0;
+    const cryptoVal = Number(cryptoIn.value) || 0;
+    let message = "";
+    if (fiatVal < offer.min) message = "Amount is below the minimum (" + money(offer.min, offer.currency) + ")";
+    else if (fiatVal > offer.max) message = "Amount is above the maximum (" + money(offer.max, offer.currency) + ")";
+    else if (cryptoVal > offer.stock) message = "Only " + offer.stock + " " + coinVal + " is left on this offer";
+    warn.textContent = message;
+    warn.style.display = message ? "block" : "none";
+    confirmBtn.disabled = Boolean(message);
+    return !message;
+  }
+
+  fiatIn.oninput = () => {
+    const fiatVal = Number(fiatIn.value) || 0;
+    cryptoIn.value = fiatVal > 0 ? (fiatVal / offer.price).toFixed(4) : "";
+    validateLimits();
+  };
+  cryptoIn.oninput = () => {
+    const cryptoVal = Number(cryptoIn.value) || 0;
+    fiatIn.value = cryptoVal > 0 ? (cryptoVal * offer.price).toFixed(2) : "";
+    validateLimits();
+  };
+  validateLimits();
+
+  $("cancelTradeBtn").onclick = closeModal;
+
+  confirmBtn.onclick = async () => {
+    const cryptoAmount = Number(cryptoIn.value) || 0;
+    const paymentMethod = $("tradePaymentSelect").value;
+    if (!validateLimits() || cryptoAmount <= 0) return notify("Please enter a valid amount within the limits.");
+
+    confirmBtn.disabled = true;
+    confirmBtn.textContent = "Creating order…";
+    const ok = await handleInitiateTrade(offer, cryptoAmount, paymentMethod, requestKey);
+    if (!ok) {
+      confirmBtn.disabled = false;
+      confirmBtn.textContent = "Create order";
+    }
+  };
+
+  $("modal").classList.add("show");
+}
+
+// Buy or Sell button handler. Orders need a signed-in account.
+function trade(offer) {
+  if (!authUser) {
+    notify("Please sign in to place an order.");
+    openSignIn();
+    return;
+  }
+  openEscrowOrderModal(offer);
+}
+
+// Returns true only when the server confirmed the order.
+async function handleInitiateTrade(offer, cryptoAmount, paymentMethod, requestKey) {
+  if (!authUser) {
+    closeModal();
+    notify("Please sign in to place an order.");
+    openSignIn();
+    return false;
+  }
+
+  const result = await createTrade(cryptoAmount, paymentMethod, offer.adId, requestKey);
+  if (!result.success) {
+    notify("Order not created: " + result.error);
+    return false;
+  }
+
+  notify("Order created. Opening your order page…");
+  closeModal();
+  window.setTimeout(() => {
+    window.location.href = "trade.html?id=" + encodeURIComponent(result.tradeId);
+  }, 250);
+  return true;
+}
+
+function initApp() {
+  initTheme();
+
+  const themeBtn = $("themeToggleBtn");
+  if (themeBtn) {
+    const syncThemeButton = () => {
+      const isDark = document.body.classList.contains("dark-mode");
+      themeBtn.textContent = isDark ? "☀️ Light" : "🌙 Dark";
+      themeBtn.setAttribute("aria-label", isDark ? "Switch to light theme" : "Switch to dark theme");
+      themeBtn.setAttribute("aria-pressed", String(isDark));
+      themeBtn.title = isDark ? "Switch to light theme" : "Switch to dark theme";
+    };
+    syncThemeButton();
+    themeBtn.onclick = () => {
+      toggleDarkMode();
+      syncThemeButton();
+      document.body.classList.remove("theme-changing");
+      void document.body.offsetWidth;
+      document.body.classList.add("theme-changing");
+      window.setTimeout(() => document.body.classList.remove("theme-changing"), 450);
+    };
+  }
+
+  supabase.auth.getSession().then(async ({ data: { session } }) => {
+    const params = new URLSearchParams(window.location.search);
+    const queryRequiresReauth = params.get("reauth") === "1";
+    const storedRequiresReauth = consumeReauthenticationRequired();
+    const requiredReauth = queryRequiresReauth || storedRequiresReauth;
+    if (params.has("reauth")) {
+      const cleanUrl = new URL(window.location.href);
+      cleanUrl.searchParams.delete("reauth");
+      history.replaceState(null, "", cleanUrl.pathname + cleanUrl.search + cleanUrl.hash);
+    }
+
+    if (requiredReauth) {
+      if (session) await supabase.auth.signOut();
+      clearSessionTracking();
+      updateAccount(null);
+      openSignIn();
+    } else {
+      updateAccount(session?.user || null);
+    }
+    loadAds(false);
+  });
+
+  supabase.auth.onAuthStateChange((_event, session) => {
+    updateAccount(session?.user || null);
+  });
+
+  if ($("login")) $("login").onclick = () => (authUser ? openSecurity() : openSignIn());
+  if ($("signup")) $("signup").onclick = () => (authUser ? openProfile() : openSignUp());
+  if ($("security")) $("security").onclick = () => openSecurity();
+  if ($("profile")) $("profile").onclick = () => openProfile();
+  if ($("post")) $("post").onclick = () => (authUser ? openCreateAdModal() : openSignIn());
+  if ($("howP2PWorksBtn")) $("howP2PWorksBtn").onclick = () => openHowP2PWorks();
+
+  if ($("coin")) $("coin").onchange = () => scheduleAdsLoad();
+  if ($("fiat")) $("fiat").onchange = () => scheduleAdsLoad();
+  if ($("amount")) $("amount").oninput = () => scheduleAdsLoad();
+  if ($("amountUnit")) $("amountUnit").onchange = () => scheduleAdsLoad();
+  if ($("payment")) $("payment").onchange = () => scheduleAdsLoad();
+  if ($("refreshOffers")) $("refreshOffers").onclick = () => loadAds(false);
+  if ($("reset")) $("reset").onclick = () => {
+    if ($("amount")) $("amount").value = "";
+    if ($("payment")) $("payment").value = "all";
+    loadAds(false);
+  };
+
+  document.querySelectorAll("[data-close]").forEach((btn) => {
+    btn.onclick = () => closeModal();
+  });
+
+  const loadMoreBtn = $("loadMore");
+  if (loadMoreBtn) loadMoreBtn.onclick = () => loadAds(true);
+
+  document.querySelectorAll("[data-side]").forEach((btn) => {
+    btn.onclick = () => {
+      side = btn.dataset.side;
+      document.querySelectorAll("[data-side]").forEach((b) => b.classList.toggle("on", b === btn));
+      loadAds(false);
+    };
+  });
+
+  // Desktop sidebar navigation
+  document.querySelectorAll(".nav [data-view]").forEach((item) => {
+    item.onclick = (e) => {
+      e.preventDefault();
+      setView(item.dataset.view);
+    };
+  });
+
+  // Mobile bottom navigation (P2P, Orders, My Ads, Profile)
+  const mNavMarket = $("mNavMarket");
+  if (mNavMarket) mNavMarket.onclick = () => setView("market");
+
+  const mNavOrders = $("mNavOrders");
+  if (mNavOrders) mNavOrders.onclick = () => setView("orders");
+
+  const mNavAds = $("mNavAds");
+  if (mNavAds) mNavAds.onclick = () => {
+    if (authUser) openCreateAdModal();
+    else openSignIn();
+  };
+
+  const mNavProfile = $("mNavProfile");
+  if (mNavProfile) mNavProfile.onclick = () => {
+    if (authUser) openProfile();
+    else openSignIn();
+  };
+
+  updateOrdersBadge();
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initApp);
+} else {
+  initApp();
+}
