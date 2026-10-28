@@ -5,6 +5,8 @@ import {
   createAd,
   updateAd,
   listMyAds,
+  listMyOrders,
+  createOrder,
 } from "./services/supabase.js";
 import {
   clearSessionTracking,
@@ -30,164 +32,6 @@ let view = "market";
 let toastTimer;
 let filterTimer;
 let currentAdRequest = 0;
-
-// High-fidelity Ethiopian P2P seed offers with complete seller bank details
-const SEED_OFFERS = [
-  {
-    id: "seed_dawit_01",
-    adId: "seed_dawit_01",
-    ownerId: "seller_dawit",
-    name: "Dawit_Crypto",
-    ini: "DC",
-    side: "sell",
-    adSide: "sell",
-    currency: "ETB",
-    price: 186.20,
-    stock: 3500,
-    min: 500,
-    max: 50000,
-    pay: ["Commercial Bank of Ethiopia", "Tele Birr"],
-    trades: 420,
-    completion: 99.8,
-    bankName: "Commercial Bank of Ethiopia",
-    sellerAccountName: "Dawit Haile",
-    sellerAccountNumber: "100028491823",
-    isOwn: false,
-    archived: false,
-  },
-  {
-    id: "seed_addis_02",
-    adId: "seed_addis_02",
-    ownerId: "seller_addis",
-    name: "Addis_Traders",
-    ini: "AT",
-    side: "sell",
-    adSide: "sell",
-    currency: "ETB",
-    price: 186.50,
-    stock: 5800,
-    min: 1000,
-    max: 120000,
-    pay: ["Tele Birr", "Commercial Bank of Ethiopia", "CBE Birr"],
-    trades: 890,
-    completion: 99.4,
-    bankName: "Tele Birr",
-    sellerAccountName: "Addis Mulugeta",
-    sellerAccountNumber: "0911482910",
-    isOwn: false,
-    archived: false,
-  },
-  {
-    id: "seed_kirubel_03",
-    adId: "seed_kirubel_03",
-    ownerId: "seller_kirubel",
-    name: "Kirubel_P2P",
-    ini: "KP",
-    side: "sell",
-    adSide: "sell",
-    currency: "ETB",
-    price: 185.90,
-    stock: 2200,
-    min: 300,
-    max: 35000,
-    pay: ["Commercial Bank of Ethiopia", "Bank of Abyssinia"],
-    trades: 310,
-    completion: 100.0,
-    bankName: "Commercial Bank of Ethiopia",
-    sellerAccountName: "Kirubel Desta",
-    sellerAccountNumber: "100039281726",
-    isOwn: false,
-    archived: false,
-  },
-  {
-    id: "seed_abyssinia_04",
-    adId: "seed_abyssinia_04",
-    ownerId: "seller_abyssinia",
-    name: "Abyssinia_Exchange",
-    ini: "AE",
-    side: "sell",
-    adSide: "sell",
-    currency: "ETB",
-    price: 187.00,
-    stock: 12500,
-    min: 2000,
-    max: 200000,
-    pay: ["Bank of Abyssinia", "Commercial Bank of Ethiopia", "Awash Bank"],
-    trades: 1450,
-    completion: 99.1,
-    bankName: "Bank of Abyssinia",
-    sellerAccountName: "Tewodros Kassaye",
-    sellerAccountNumber: "294810294",
-    isOwn: false,
-    archived: false,
-  },
-  {
-    id: "seed_fast_05",
-    adId: "seed_fast_05",
-    ownerId: "seller_fast",
-    name: "Ethio_FastPay",
-    ini: "EF",
-    side: "sell",
-    adSide: "sell",
-    currency: "ETB",
-    price: 186.40,
-    stock: 4100,
-    min: 500,
-    max: 60000,
-    pay: ["Tele Birr", "Commercial Bank of Ethiopia"],
-    trades: 540,
-    completion: 99.6,
-    bankName: "Tele Birr",
-    sellerAccountName: "Ermias Girma",
-    sellerAccountNumber: "0912384756",
-    isOwn: false,
-    archived: false,
-  },
-  {
-    id: "seed_hub_06",
-    adId: "seed_hub_06",
-    ownerId: "seller_hub",
-    name: "Birr_Crypto_Hub",
-    ini: "BH",
-    side: "buy",
-    adSide: "buy",
-    currency: "ETB",
-    price: 185.20,
-    stock: 6500,
-    min: 500,
-    max: 80000,
-    pay: ["Commercial Bank of Ethiopia", "Tele Birr", "Dashen Bank"],
-    trades: 620,
-    completion: 98.9,
-    bankName: "Commercial Bank of Ethiopia",
-    sellerAccountName: "Birr Hub Trading",
-    sellerAccountNumber: "100049281745",
-    isOwn: false,
-    archived: false,
-  },
-  {
-    id: "seed_selam_07",
-    adId: "seed_selam_07",
-    ownerId: "seller_selam",
-    name: "Selam_Trader",
-    ini: "ST",
-    side: "buy",
-    adSide: "buy",
-    currency: "ETB",
-    price: 185.50,
-    stock: 3800,
-    min: 1000,
-    max: 50000,
-    pay: ["Commercial Bank of Ethiopia", "Bank of Abyssinia"],
-    trades: 280,
-    completion: 99.3,
-    bankName: "Bank of Abyssinia",
-    sellerAccountName: "Selamawit Bekele",
-    sellerAccountNumber: "108392019",
-    isOwn: false,
-    archived: false,
-  }
-];
 
 function esc(value) {
   return String(value || "").replace(/[&<>"']/g, (char) => ({
@@ -236,47 +80,18 @@ function toggleDarkMode() {
   notify(isDark ? "Dark mode enabled" : "Light mode enabled");
 }
 
-async function createTrade(buyerId, sellerId, cryptoAmount, fiatAmount, paymentMethod = "Commercial Bank of Ethiopia", adId = null) {
-  // 1. Try create_p2p_order RPC
-  if (adId && !adId.startsWith("seed_")) {
-    try {
-      const requestKey = crypto.randomUUID ? crypto.randomUUID() : `req_${Date.now()}`;
-      const { data, error } = await supabase.rpc("create_p2p_order", {
-        p_ad_id: adId,
-        p_crypto_amount: cryptoAmount,
-        p_payment_method: paymentMethod,
-        p_request_key: requestKey,
-      });
-      if (!error && data) return { success: true, tradeId: data };
-    } catch (e) {
-      console.warn("create_p2p_order error:", e);
-    }
-  }
-
-  // 2. Try direct trades table insert
+// Creates a real order through the create_p2p_order database function.
+// There is no fallback: if the server does not confirm, no order exists.
+async function createTrade(cryptoAmount, paymentMethod, adId, requestKey) {
+  if (!adId) return { success: false, error: "This offer is no longer available." };
   try {
-    const { data, error } = await supabase
-      .from("trades")
-      .insert([
-        {
-          buyer_id: buyerId,
-          seller_id: sellerId,
-          crypto_amount: cryptoAmount,
-          fiat_amount: fiatAmount,
-          status: "pending_payment",
-        },
-      ])
-      .select()
-      .single();
-
-    if (!error && data?.id) return { success: true, tradeId: data.id };
+    const { data, error } = await createOrder({ adId, cryptoAmount, paymentMethod, requestKey });
+    if (error) return { success: false, error: error.message };
+    if (!data) return { success: false, error: "The server did not return an order." };
+    return { success: true, tradeId: data };
   } catch (err) {
-    console.warn("direct trade table insert:", err);
+    return { success: false, error: err?.message || "Could not reach the server." };
   }
-
-  // 3. Fallback trade ID
-  const fallbackId = "TRD-" + Math.floor(10000 + Math.random() * 90000);
-  return { success: true, tradeId: fallbackId };
 }
 
 function openSignUp() {
@@ -363,11 +178,11 @@ async function openProfile() {
   }
 
   const meta = authUser.user_metadata || {};
-  const fullName = profile?.full_name || meta.full_name || "Kirubel Desta";
+  const fullName = profile?.full_name || meta.full_name || "Not set";
   const country = profile?.country || meta.country || "Ethiopia";
   const address = profile?.address || meta.address || "";
   const bankName = profile?.bank_name || "Commercial Bank of Ethiopia";
-  const bankAccountNum = profile?.bank_account_number || "100028491823";
+  const bankAccountNum = profile?.bank_account_number || "";
 
   $("modalTitle").textContent = "User Profile & Bank Account";
   $("modalBody").innerHTML = `
@@ -405,6 +220,7 @@ async function openProfile() {
     const accNum = $("bankAccountNum").value.trim();
 
     if (!accNum) return notify("Please enter your bank account number.");
+    if (fullName === "Not set") return notify("Add your legal name to your account before saving bank details.");
 
     const { error } = await supabase.from("profiles").upsert({
       id: authUser.id,
@@ -540,7 +356,7 @@ function openCreateAdModal() {
 
   $("modalTitle").textContent = "Post a P2P Advertisement";
   $("modalBody").innerHTML = `
-    <p class="sec-note">Create a live escrow listing. Collateral is securely locked in smart contracts.</p>
+    <p class="sec-note">Create a live listing. Orders opened against it reserve part of the amount you list.</p>
     <label class="label">Offer Type</label>
     <div style="display:flex; gap:10px; margin-bottom:12px;">
       <button type="button" class="btn primary small" id="adSideSell" style="flex:1;">I want to Sell USDT</button>
@@ -663,15 +479,15 @@ function openManageAdModal(offer) {
   `;
 
   $("deactivateAdBtn").onclick = async () => {
-    removeAdLocally(offer.id || offer.adId);
-    try {
-      if (offer.id) {
-        await updateAd(offer.id, { is_active: false, archived_at: new Date().toISOString() });
-      }
-    } catch (e) {
-      console.warn("Could not deactivate ad in DB:", e);
+    const btn = $("deactivateAdBtn");
+    btn.disabled = true;
+    const { error } = await updateAd(offer.id, { is_active: false, archived_at: new Date().toISOString() });
+    if (error) {
+      notify("Could not remove the ad: " + error.message);
+      btn.disabled = false;
+      return;
     }
-    notify("Ad removed from marketplace.");
+    notify("Ad removed from the marketplace.");
     closeModal();
     loadAds(false);
   };
@@ -775,9 +591,9 @@ function openSignIn() {
 function openHowP2PWorks() {
   $("modalTitle").textContent = "How P2P Escrow Works";
   $("modalBody").innerHTML = `
-    <p class="sec-note">1. <b>Initiate Trade:</b> Select an offer and click Buy or Sell. An escrow trade is automatically opened.</p>
-    <p class="sec-note">2. <b>Lock Escrow:</b> The seller's cryptocurrency is safely locked in the smart contract escrow vault.</p>
-    <p class="sec-note">3. <b>Transfer & Release:</b> Pay the seller using their verified bank details. Once verified, crypto is released to your wallet.</p>
+    <p class="sec-note">1. <b>Choose an offer:</b> Pick an offer and enter how much USDT you want. The server creates an order and reserves that amount on the ad.</p>
+    <p class="sec-note">2. <b>Pay:</b> The buyer pays the seller outside Etp2p, then marks the order as paid.</p>
+    <p class="sec-note">3. <b>Confirm:</b> The seller checks the money arrived, then completes the order. Etp2p does not hold or move money or USDT.</p>
   `;
   $("modalFoot").innerHTML = `<button class="btn primary" onclick="document.getElementById('modal').classList.remove('show')">Got it</button>`;
   $("modal").classList.add("show");
@@ -795,13 +611,15 @@ function updateAccount(user) {
   }
 }
 
+// Only real database fields; nothing is invented.
 function toOffer(row, handles) {
+  const handle = handles.get(row.owner_id) || "Etp2p merchant";
   return {
     id: row.id,
     adId: row.id,
     ownerId: row.owner_id,
-    name: handles.get(row.owner_id) || "Etp2p merchant",
-    ini: (handles.get(row.owner_id) || "ETP").replace(/[^A-Za-z0-9]/g, "").slice(0, 2).toUpperCase(),
+    name: handle,
+    ini: handle.replace(/[^A-Za-z0-9]/g, "").slice(0, 2).toUpperCase() || "ET",
     side: row.side,
     adSide: row.side,
     currency: row.currency,
@@ -809,12 +627,7 @@ function toOffer(row, handles) {
     stock: Number(row.available_amount),
     min: Number(row.min_fiat_amount),
     max: Number(row.max_fiat_amount),
-    pay: row.payment_methods || ["Commercial Bank of Ethiopia", "Tele Birr"],
-    trades: 380,
-    completion: 99.4,
-    bankName: (row.payment_methods && row.payment_methods[0]) || "Commercial Bank of Ethiopia",
-    sellerAccountName: handles.get(row.owner_id) || "Kirubel Desta",
-    sellerAccountNumber: `1000${Math.floor(100000 + Math.random() * 900000)}`,
+    pay: row.payment_methods || [],
     isOwn: Boolean(authUser && row.owner_id === authUser.id),
     archived: Boolean(row.archived_at),
   };
@@ -836,6 +649,7 @@ async function loadAds(append = false) {
   const requestedSide = side === "buy" ? "sell" : "buy";
   const amount = Number($("amount")?.value || 0);
   let rows = [];
+  let loadError = null;
 
   try {
     const result = await listAds({
@@ -848,7 +662,9 @@ async function loadAds(append = false) {
       limit: PAGE_SIZE,
     });
     rows = result.data || [];
+    if (result.error) loadError = result.error;
   } catch (error) {
+    loadError = error;
     console.warn("Supabase listAds error:", error);
   }
 
@@ -892,7 +708,7 @@ async function loadAds(append = false) {
     loadMore.hidden = !canLoadMore;
     loadMore.disabled = false;
   }
-  setDatabaseStatus("Escrow marketplace active", true);
+  setDatabaseStatus(loadError ? "Could not load offers" : "Escrow marketplace active", !loadError);
   render();
   finishAdsLoad();
 }
@@ -913,7 +729,7 @@ function finishAdsLoad() {
 function render() {
   const coinVal = $("coin")?.value || "USDT";
   const fiatVal = $("fiat")?.value || "ETB";
-  
+
   if ($("amountUnit") && $("amountUnit").options) {
     if ($("amountUnit").options[0]) $("amountUnit").options[0].text = fiatVal;
     if ($("amountUnit").options[1]) $("amountUnit").options[1].text = coinVal;
@@ -921,530 +737,15 @@ function render() {
 
   const shown = offers.filter((offer) => !offer.archived);
   shown.sort((a, b) => side === "buy" ? a.price - b.price : b.price - a.price);
-  
-  // 1. Render Desktop Table Rows
+
+  const openOffer = (offer) => { if (offer.isOwn) openManageAdModal(offer); else trade(offer); };
+  const labelFor = (offer) => offer.isOwn ? "Manage" : (side === "buy" ? "Buy " : "Sell ") + coinVal;
+  const classFor = (offer) => offer.isOwn ? "outline" : (side === "buy" ? "primary" : "dark");
+  const payTags = (offer) => offer.pay.map((method) => '<span class="pay ' + (method === "Tele Birr" || method === "CBE Birr" ? "wallet" : "bank") + '">' + esc(method) + "</span>").join("");
+  const emptyHtml = '<div class="empty"><strong>No matching offers</strong>Try changing the filters or post a new offer.</div>';
+
   if ($("rows")) {
     if (!shown.length) {
-      $("rows").innerHTML = '<tr><td colspan="6"><div class="empty"><strong>No matching offers</strong>Try changing the filters or post a new offer.</div></td></tr>';
+      $("rows").innerHTML = '<tr><td colspan="6">' + emptyHtml + "</td></tr>";
     } else {
-      $("rows").innerHTML = shown.map((offer) => {
-        const index = offers.indexOf(offer);
-        const buttonText = offer.isOwn ? "Manage" : (side === "buy" ? "Buy " : "Sell ") + coinVal;
-        const buttonClass = offer.isOwn ? "outline" : (side === "buy" ? "primary" : "dark");
-        const history = offer.completion === null ? "99.4%" : offer.completion + "%";
-        return '<tr data-row-offer="' + index + '" tabindex="0" aria-label="Open offer from ' + esc(offer.name) + '"><td><div class="merchant"><div class="micon">' + esc(offer.ini) + '</div><div><div class="mname">' + esc(offer.name) + '</div><div class="meta">Verified Escrow Merchant</div></div></div></td><td><div class="price">' + money(offer.price, offer.currency) + ' <small>/ ' + esc(coinVal) + '</small></div></td><td><div class="limit">' + offer.stock.toLocaleString() + ' ' + esc(coinVal) + '<br><small>' + money(offer.min, offer.currency) + ' – ' + money(offer.max, offer.currency) + '</small></div></td><td><div class="pays">' + offer.pay.map((method) => '<span class="pay ' + (method === "Tele Birr" || method === "CBE Birr" ? "wallet" : "bank") + '">' + esc(method) + '</span>').join("") + '</div></td><td><div class="rate">' + history + '<small>' + (offer.trades || 340) + '+ orders</small></div></td><td><button class="btn small ' + buttonClass + '" data-offer="' + index + '" style="font-weight:800;">' + buttonText + '</button></td></tr>';
-      }).join("");
-
-      $("rows").querySelectorAll("[data-offer]").forEach((button) => button.onclick = (event) => {
-        event.stopPropagation();
-        const offer = offers[Number(button.dataset.offer)];
-        if (offer.isOwn) openManageAdModal(offer); else trade(offer);
-      });
-
-      $("rows").querySelectorAll("[data-row-offer]").forEach((row) => {
-        const action = () => {
-          const offer = offers[Number(row.dataset.rowOffer)];
-          if (offer.isOwn) openManageAdModal(offer); else trade(offer);
-        };
-        row.onclick = (event) => { if (!event.target.closest("button")) action(); };
-        row.onkeydown = (event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); action(); } };
-      });
-    }
-  }
-
-  // 2. Render Mobile Phone Cards (Optimized for Mobile Browsers)
-  const mobileCardsEl = $("mobileCards");
-  if (mobileCardsEl) {
-    if (!shown.length) {
-      mobileCardsEl.innerHTML = '<div class="empty"><strong>No matching offers</strong>Try changing the filters or post a new offer.</div>';
-    } else {
-      mobileCardsEl.innerHTML = shown.map((offer) => {
-        const index = offers.indexOf(offer);
-        const buttonText = offer.isOwn ? "Manage" : (side === "buy" ? "Buy " : "Sell ") + coinVal;
-        const buttonClass = offer.isOwn ? "outline" : (side === "buy" ? "primary" : "dark");
-        const history = offer.completion === null ? "99.4%" : offer.completion + "%";
-        const tradesCount = offer.trades || 350;
-        return `
-          <div class="m-card" data-mobile-offer="${index}" tabindex="0" role="button" aria-label="Open ${buttonText} from ${esc(offer.name)}">
-            <div class="m-card-top">
-              <div class="m-card-user">
-                <div class="micon">${esc(offer.ini)}</div>
-                <div>
-                  <div class="mname">${esc(offer.name)} <span class="v-dot" title="Verified Trader"></span></div>
-                  <div class="meta">${history} completion • ${tradesCount}+ orders</div>
-                </div>
-              </div>
-              <span class="badge" style="font-size:10px; padding:2px 8px; font-weight:800;">100% Escrow</span>
-            </div>
-
-            <div class="m-card-price">
-              <span class="m-price-num">${money(offer.price, offer.currency)}</span>
-              <span class="m-price-unit">/ ${esc(coinVal)}</span>
-            </div>
-
-            <div class="m-card-limits">
-              <div class="m-limit-row">
-                <span class="m-limit-lbl">Available Crypto</span>
-                <span class="m-limit-val">${offer.stock.toLocaleString()} ${esc(coinVal)}</span>
-              </div>
-              <div class="m-limit-row">
-                <span class="m-limit-lbl">Order Limits</span>
-                <span class="m-limit-val">${money(offer.min, offer.currency)} – ${money(offer.max, offer.currency)}</span>
-              </div>
-            </div>
-
-            <div class="pays" style="margin:2px 0;">
-              ${offer.pay.map(m => `<span class="pay ${m === 'Tele Birr' || m === 'CBE Birr' ? 'wallet' : 'bank'}">${esc(m)}</span>`).join('')}
-            </div>
-
-            <div class="m-card-foot">
-              <button class="btn ${buttonClass}" style="width:100%; justify-content:center; padding:12px; font-size:14px; border-radius:12px; font-weight:800;" data-offer="${index}">
-                ${buttonText} → Open Escrow
-              </button>
-            </div>
-          </div>
-        `;
-      }).join("");
-
-      mobileCardsEl.querySelectorAll("[data-offer]").forEach((button) => {
-        button.onclick = (event) => {
-          event.stopPropagation();
-          const offer = offers[Number(button.dataset.offer)];
-          if (offer.isOwn) openManageAdModal(offer); else trade(offer);
-        };
-      });
-
-      mobileCardsEl.querySelectorAll("[data-mobile-offer]").forEach((card) => {
-        card.onclick = (event) => {
-          if (!event.target.closest("button")) {
-            const offer = offers[Number(card.dataset.mobileOffer)];
-            if (offer.isOwn) openManageAdModal(offer); else trade(offer);
-          }
-        };
-      });
-    }
-  }
-
-  if ($("count")) $("count").textContent = offers.length.toLocaleString();
-  updateOrdersBadge();
-}
-
-function updateOrdersBadge() {
-  const savedOrders = JSON.parse(localStorage.getItem("etp2p_saved_orders") || "[]");
-  const count = savedOrders.length;
-  const badge = $("mOrdersBadge");
-  if (badge) {
-    badge.textContent = count;
-    badge.style.display = count > 0 ? "inline-block" : "none";
-  }
-}
-
-function renderOrdersList() {
-  const ordersContainer = $("orders");
-  if (!ordersContainer) return;
-  const savedOrders = JSON.parse(localStorage.getItem("etp2p_saved_orders") || "[]");
-  updateOrdersBadge();
-
-  if (!savedOrders.length) {
-    ordersContainer.innerHTML = `
-      <div class="empty">
-        <strong>No Active Orders Yet</strong>
-        When you click Buy or Sell on any marketplace offer, your escrow order opens automatically here.
-        <br><br>
-        <button class="btn primary small" id="backToMarketFromOrders">Browse Marketplace Offers</button>
-      </div>
-    `;
-    const backBtn = $("backToMarketFromOrders");
-    if (backBtn) backBtn.onclick = () => setView("market");
-    return;
-  }
-
-  ordersContainer.innerHTML = `
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:10px;">
-      <div>
-        <h3 style="margin:0; font-size:18px; font-weight:800;">My P2P Escrow Orders (${savedOrders.length})</h3>
-        <p style="margin:2px 0 0; font-size:13px; color:var(--muted);">All active and completed peer-to-peer escrow trades</p>
-      </div>
-      <button class="btn small" id="newTradeFromOrdersBtn">+ Start New Trade</button>
-    </div>
-    <div style="display:flex; flex-direction:column; gap:12px;">
-      ${savedOrders.map(ord => `
-        <div style="padding:16px; border:1px solid var(--line); border-radius:14px; background:var(--panel); display:flex; justify-content:space-between; align-items:center; gap:14px; flex-wrap:wrap; box-shadow:0 1px 3px rgba(0,0,0,0.02);">
-          <div>
-            <div style="display:flex; align-items:center; gap:8px;">
-              <b style="font-size:15px; color:var(--text); font-family:monospace;">#${esc(ord.id)}</b>
-              <span style="padding:3px 10px; border-radius:999px; font-size:11px; font-weight:800; background:var(--soft); color:var(--green); text-transform:uppercase;">
-                ${esc(ord.status.replace(/_/g, ' '))}
-              </span>
-            </div>
-            <div style="font-size:13px; color:var(--muted); margin-top:6px;">
-              <span style="font-weight:700; color:var(--text);">${esc(ord.cryptoAmount)} ${esc(ord.crypto || 'USDT')}</span> • Total: <span style="font-weight:700; color:var(--green);">${money(ord.fiatAmount, ord.currency || 'ETB')}</span> • Merchant: ${esc(ord.sellerName)}
-            </div>
-            <div style="font-size:12px; color:var(--muted); margin-top:2px;">
-              Bank: ${esc(ord.bankName || ord.paymentMethod || 'Commercial Bank of Ethiopia')}
-            </div>
-          </div>
-          <div style="display:flex; align-items:center; gap:8px;">
-            <a href="/trade.html?id=${encodeURIComponent(ord.id)}" class="btn primary small" style="text-decoration:none; font-weight:700;">
-              Open Escrow Page →
-            </a>
-          </div>
-        </div>
-      `).join('')}
-    </div>
-  `;
-
-  const newTradeBtn = $("newTradeFromOrdersBtn");
-  if (newTradeBtn) newTradeBtn.onclick = () => setView("market");
-}
-
-function displayView(nextView) {
-  view = nextView;
-  if ($("market")) $("market").classList.toggle("hide", view !== "market");
-  if ($("orders")) $("orders").classList.toggle("show", view !== "market");
-  
-  // Sync desktop navigation
-  document.querySelectorAll(".nav [data-view]").forEach((item) => item.classList.toggle("active", item.dataset.view === view));
-  
-  // Sync mobile bottom navigation
-  document.querySelectorAll(".m-nav-btn").forEach((btn) => {
-    btn.classList.toggle("active", btn.dataset.mview === view);
-  });
-
-  if ($("title")) $("title").textContent = view === "market" ? "Buy and sell crypto, your way." : view === "ads" ? "My P2P ads" : "Your P2P orders";
-  if ($("subtitle")) $("subtitle").textContent = view === "market" ? "Verified Ethiopian peer-to-peer crypto exchange with smart escrow." : view === "ads" ? "Manage your persistent marketplace listings." : "Private order records for your account.";
-  
-  if (view === "market") {
-    render();
-  } else if (view === "orders") {
-    renderOrdersList();
-  }
-}
-
-function setView(nextView) {
-  displayView(nextView);
-}
-
-// Open Escrow Order configuration modal - opens directly to trade.html
-function openEscrowOrderModal(offer) {
-  const coinVal = $("coin")?.value || "USDT";
-  const actionLabel = side === "buy" ? "Buy" : "Sell";
-  const defaultFiat = Math.min(Math.max(offer.min, 1000), offer.max);
-  const defaultCrypto = (defaultFiat / offer.price).toFixed(2);
-
-  $("modalTitle").textContent = `${actionLabel} ${coinVal} - Escrow Order`;
-  $("modalBody").innerHTML = `
-    <div style="margin-bottom:14px; padding:12px; background:var(--soft); border:1px solid var(--line); border-radius:12px;">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-        <span style="font-size:12px; color:var(--muted);">Merchant:</span>
-        <b style="font-size:13px; color:var(--text);">${esc(offer.name)}</b>
-      </div>
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-        <span style="font-size:12px; color:var(--muted);">Unit Rate:</span>
-        <b style="font-size:14px; color:var(--green);">${money(offer.price, offer.currency)} / ${esc(coinVal)}</b>
-      </div>
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-        <span style="font-size:12px; color:var(--muted);">Order Limits:</span>
-        <span style="font-size:12px; font-weight:600; color:var(--text);">${money(offer.min, offer.currency)} – ${money(offer.max, offer.currency)}</span>
-      </div>
-      <div style="display:flex; justify-content:space-between; align-items:center;">
-        <span style="font-size:12px; color:var(--muted);">Available Escrow Stock:</span>
-        <span style="font-size:12px; font-weight:700; color:var(--text);">${offer.stock.toLocaleString()} ${esc(coinVal)}</span>
-      </div>
-    </div>
-
-    <label class="label" for="tradeFiatInput">I want to pay (${offer.currency})</label>
-    <div class="entry" style="display:flex; align-items:center;">
-      <input id="tradeFiatInput" type="number" step="any" value="${defaultFiat}" placeholder="Enter amount in ${offer.currency}" style="flex:1;">
-      <span style="font-size:12px; font-weight:700; color:var(--muted); margin-left:8px;">${offer.currency}</span>
-    </div>
-
-    <label class="label" for="tradeCryptoInput" style="margin-top:10px;">I will receive (${esc(coinVal)})</label>
-    <div class="entry" style="display:flex; align-items:center;">
-      <input id="tradeCryptoInput" type="number" step="any" value="${defaultCrypto}" placeholder="Amount in ${esc(coinVal)}" style="flex:1;">
-      <span style="font-size:12px; font-weight:700; color:var(--green); margin-left:8px;">${esc(coinVal)}</span>
-    </div>
-
-    <div id="tradeLimitWarning" style="display:none; color:#dc2626; font-size:11px; margin-top:6px; font-weight:600;"></div>
-
-    <label class="label" for="tradePaymentSelect" style="margin-top:10px;">Payment Method</label>
-    <div class="entry">
-      <select id="tradePaymentSelect" style="width:100%; border:0; outline:0; font-weight:600; background:transparent;">
-        ${(offer.pay && offer.pay.length ? offer.pay : ['Commercial Bank of Ethiopia', 'Tele Birr', 'CBE Birr', 'Bank of Abyssinia']).map(pm => `<option value="${esc(pm)}">${esc(pm)}</option>`).join('')}
-      </select>
-    </div>
-
-    <div style="margin-top:14px; padding:12px; background:rgba(31,157,107,0.08); border:1px solid rgba(31,157,107,0.25); border-radius:10px; font-size:12px; color:var(--text); line-height:1.4;">
-      🔒 <b>Smart Escrow Protected:</b> The seller's ${esc(coinVal)} is locked in escrow before payment. Funds are released only after you transfer fiat and seller confirms.
-    </div>
-  `;
-
-  $("modalFoot").innerHTML = `
-    <button class="btn primary" id="confirmTradeBtn" style="margin-bottom:8px; font-weight:800; padding:12px;">Lock Escrow & Open Order Page</button>
-    <button class="btn outline" id="cancelTradeBtn">Cancel</button>
-  `;
-
-  const fiatIn = $("tradeFiatInput");
-  const cryptoIn = $("tradeCryptoInput");
-  const warn = $("tradeLimitWarning");
-  const confirmBtn = $("confirmTradeBtn");
-
-  function validateLimits() {
-    const fiatVal = Number(fiatIn.value) || 0;
-    const cryptoVal = Number(cryptoIn.value) || 0;
-    if (fiatVal < offer.min) {
-      warn.textContent = `Amount is below minimum limit (${money(offer.min, offer.currency)})`;
-      warn.style.display = "block";
-      confirmBtn.disabled = true;
-      return false;
-    }
-    if (fiatVal > offer.max) {
-      warn.textContent = `Amount exceeds maximum limit (${money(offer.max, offer.currency)})`;
-      warn.style.display = "block";
-      confirmBtn.disabled = true;
-      return false;
-    }
-    if (cryptoVal > offer.stock) {
-      warn.textContent = `Amount exceeds available stock (${offer.stock} ${coinVal})`;
-      warn.style.display = "block";
-      confirmBtn.disabled = true;
-      return false;
-    }
-    warn.style.display = "none";
-    confirmBtn.disabled = false;
-    return true;
-  }
-
-  fiatIn.oninput = () => {
-    const fiatVal = Number(fiatIn.value) || 0;
-    cryptoIn.value = fiatVal > 0 ? (fiatVal / offer.price).toFixed(4) : "";
-    validateLimits();
-  };
-
-  cryptoIn.oninput = () => {
-    const cryptoVal = Number(cryptoIn.value) || 0;
-    fiatIn.value = cryptoVal > 0 ? (cryptoVal * offer.price).toFixed(2) : "";
-    validateLimits();
-  };
-
-  validateLimits();
-
-  $("cancelTradeBtn").onclick = closeModal;
-
-  confirmBtn.onclick = async () => {
-    const cryptoAmount = Number(cryptoIn.value) || 0;
-    const fiatAmount = Number(fiatIn.value) || 0;
-    const paymentMethod = $("tradePaymentSelect").value || "Commercial Bank of Ethiopia";
-
-    if (!validateLimits() || cryptoAmount <= 0 || fiatAmount <= 0) {
-      return notify("Please enter a valid amount within limits.");
-    }
-
-    confirmBtn.disabled = true;
-    confirmBtn.textContent = "Locking Escrow & Opening Order...";
-
-    await handleInitiateTrade(offer, cryptoAmount, fiatAmount, paymentMethod);
-  };
-
-  $("modal").classList.add("show");
-}
-
-// Buy or Sell button handler - opens escrow order directly
-function trade(offer) {
-  openEscrowOrderModal(offer);
-}
-
-async function handleInitiateTrade(ad, cryptoAmount, fiatAmount, paymentMethod = "Commercial Bank of Ethiopia") {
-  let buyerId = authUser?.id;
-  let buyerEmail = authUser?.email;
-
-  if (!buyerId) {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      buyerId = user?.id;
-      buyerEmail = user?.email;
-    } catch (e) {}
-  }
-
-  // If visitor is testing, generate guest trader identity seamlessly
-  if (!buyerId) {
-    buyerId = `trader_${Math.random().toString(36).substring(2, 9)}`;
-    buyerEmail = "buyer@etp2p.com";
-  }
-
-  const sellerId = ad.ownerId || ad.owner_id || "seller_default";
-  const coinVal = $("coin")?.value || "USDT";
-  const result = await createTrade(buyerId, sellerId, cryptoAmount, fiatAmount, paymentMethod, ad.id);
-
-  if (result.success && result.tradeId) {
-    const sellerAccountName = ad.sellerAccountName || ad.name || "Kirubel Desta";
-    const sellerAccountNumber = ad.sellerAccountNumber || (paymentMethod.includes("Tele") ? "0911234567" : "100028491823");
-
-    // Persist full order state with complete seller bank details to localStorage
-    const orderRecord = {
-      id: result.tradeId,
-      adId: ad.id,
-      buyerId: buyerId,
-      sellerId: sellerId,
-      sellerName: ad.name || "Dawit_Crypto (Top Merchant)",
-      buyerEmail: buyerEmail || "You",
-      cryptoAmount: cryptoAmount,
-      fiatAmount: fiatAmount,
-      currency: ad.currency || "ETB",
-      crypto: coinVal,
-      price: ad.price,
-      paymentMethod: paymentMethod,
-      bankName: ad.bankName || paymentMethod,
-      sellerAccountName: sellerAccountName,
-      sellerAccountNumber: sellerAccountNumber,
-      status: "pending_payment",
-      createdAt: new Date().toISOString(),
-      accountDetails: `${paymentMethod}: ${sellerAccountName} (${sellerAccountNumber})`
-    };
-
-    try {
-      localStorage.setItem(`etp2p_trade_${result.tradeId}`, JSON.stringify(orderRecord));
-      const allOrders = JSON.parse(localStorage.getItem("etp2p_saved_orders") || "[]");
-      allOrders.unshift(orderRecord);
-      localStorage.setItem("etp2p_saved_orders", JSON.stringify(allOrders));
-    } catch (e) {
-      console.warn("Storage error:", e);
-    }
-
-    notify("Escrow locked! Opening order escrow page...");
-    updateOrdersBadge();
-    closeModal();
-
-    setTimeout(() => {
-      window.location.href = `/trade.html?id=${result.tradeId}`;
-    }, 280);
-  } else {
-    notify(`Failed to create trade: ${result.error || 'Please try again'}`);
-    const confirmBtn = $("confirmTradeBtn");
-    if (confirmBtn) {
-      confirmBtn.disabled = false;
-      confirmBtn.textContent = "Lock Escrow & Open Order Page";
-    }
-  }
-}
-
-window.handleInitiateTrade = handleInitiateTrade;
-
-function initApp() {
-  initTheme();
-
-  const themeBtn = $("themeToggleBtn");
-  if (themeBtn) {
-    const syncThemeButton = () => {
-      const isDark = document.body.classList.contains("dark-mode");
-      themeBtn.textContent = isDark ? "☀️ Light" : "🌙 Dark";
-      themeBtn.setAttribute("aria-label", isDark ? "Switch to light theme" : "Switch to dark theme");
-      themeBtn.setAttribute("aria-pressed", String(isDark));
-      themeBtn.title = isDark ? "Switch to light theme" : "Switch to dark theme";
-    };
-    syncThemeButton();
-    themeBtn.onclick = () => {
-      toggleDarkMode();
-      syncThemeButton();
-      document.body.classList.remove("theme-changing");
-      void document.body.offsetWidth;
-      document.body.classList.add("theme-changing");
-      window.setTimeout(() => document.body.classList.remove("theme-changing"), 450);
-    };
-  }
-
-  supabase.auth.getSession().then(async ({ data: { session } }) => {
-    const params = new URLSearchParams(window.location.search);
-    const queryRequiresReauth = params.get("reauth") === "1";
-    const storedRequiresReauth = consumeReauthenticationRequired();
-    const requiredReauth = queryRequiresReauth || storedRequiresReauth;
-    if (params.has("reauth")) {
-      const cleanUrl = new URL(window.location.href);
-      cleanUrl.searchParams.delete("reauth");
-      history.replaceState(null, "", cleanUrl.pathname + cleanUrl.search + cleanUrl.hash);
-    }
-
-    if (requiredReauth) {
-      if (session) await supabase.auth.signOut();
-      clearSessionTracking();
-      updateAccount(null);
-      openSignIn();
-    } else {
-      updateAccount(session?.user || null);
-    }
-    loadAds(false);
-  });
-
-  supabase.auth.onAuthStateChange((_event, session) => {
-    updateAccount(session?.user || null);
-  });
-
-  if ($("login")) $("login").onclick = () => (authUser ? openSecurity() : openSignIn());
-  if ($("signup")) $("signup").onclick = () => (authUser ? openProfile() : openSignUp());
-  if ($("security")) $("security").onclick = () => openSecurity();
-  if ($("profile")) $("profile").onclick = () => openProfile();
-  if ($("post")) $("post").onclick = () => (authUser ? openCreateAdModal() : openSignIn());
-  if ($("howP2PWorksBtn")) $("howP2PWorksBtn").onclick = () => openHowP2PWorks();
-
-  if ($("coin")) $("coin").onchange = () => scheduleAdsLoad();
-  if ($("fiat")) $("fiat").onchange = () => scheduleAdsLoad();
-  if ($("amount")) $("amount").oninput = () => scheduleAdsLoad();
-  if ($("amountUnit")) $("amountUnit").onchange = () => scheduleAdsLoad();
-  if ($("payment")) $("payment").onchange = () => scheduleAdsLoad();
-  if ($("refreshOffers")) $("refreshOffers").onclick = () => loadAds(false);
-  if ($("reset")) $("reset").onclick = () => {
-    if ($("amount")) $("amount").value = "";
-    if ($("payment")) $("payment").value = "all";
-    loadAds(false);
-  };
-
-  document.querySelectorAll("[data-close]").forEach((btn) => {
-    btn.onclick = () => closeModal();
-  });
-
-  const loadMoreBtn = $("loadMore");
-  if (loadMoreBtn) loadMoreBtn.onclick = () => loadAds(true);
-
-  document.querySelectorAll("[data-side]").forEach((btn) => {
-    btn.onclick = () => {
-      side = btn.dataset.side;
-      document.querySelectorAll("[data-side]").forEach((b) => b.classList.toggle("on", b === btn));
-      loadAds(false);
-    };
-  });
-
-  // Desktop sidebar navigation
-  document.querySelectorAll(".nav [data-view]").forEach((item) => {
-    item.onclick = (e) => {
-      e.preventDefault();
-      setView(item.dataset.view);
-    };
-  });
-
-  // Mobile bottom navigation (P2P, Orders, My Ads, Profile)
-  const mNavMarket = $("mNavMarket");
-  if (mNavMarket) mNavMarket.onclick = () => setView("market");
-
-  const mNavOrders = $("mNavOrders");
-  if (mNavOrders) mNavOrders.onclick = () => setView("orders");
-
-  const mNavAds = $("mNavAds");
-  if (mNavAds) mNavAds.onclick = () => {
-    if (authUser) openCreateAdModal();
-    else openSignIn();
-  };
-
-  const mNavProfile = $("mNavProfile");
-  if (mNavProfile) mNavProfile.onclick = () => {
-    if (authUser) openProfile();
-    else openSignIn();
-  };
-
-  updateOrdersBadge();
-}
-
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", initApp);
-} else {
-  initApp();
-}
+      $("rows").innerHTML =
