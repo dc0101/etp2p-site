@@ -449,6 +449,7 @@ function openCreateAdModal() {
         notify("Advertisement published successfully!");
         closeModal();
         loadAds(false);
+        if (view === "ads") renderMyAds();
       }
     } catch (err) {
       notify("Failed to publish advertisement.");
@@ -490,6 +491,7 @@ function openManageAdModal(offer) {
     notify("Ad removed from the marketplace.");
     closeModal();
     loadAds(false);
+    if (view === "ads") renderMyAds();
   };
 
   $("modal").classList.add("show");
@@ -834,6 +836,42 @@ const ORDER_STATUS = {
   cancelled: "Cancelled",
 };
 
+async function renderMyAds() {
+  const box = $("orders");
+  if (!box) return;
+  if (!authUser) {
+    box.innerHTML = '<div class="empty"><strong>Sign in to manage your ads</strong>Your advertisements are linked to your account.</div>';
+    return;
+  }
+  box.innerHTML = '<div class="empty">Loading your ads…</div>';
+  try {
+    const { data, error } = await listMyAds(authUser.id);
+    if (error) throw error;
+    if (view !== "ads") return;
+    const rows = data || [];
+    if (!rows.length) {
+      box.innerHTML = '<div class="empty"><strong>You have no ads yet</strong>Create a listing to offer or request USDT.<br><br><button class="btn primary small" id="createFirstAd">Post an ad</button></div>';
+      const createBtn = $("createFirstAd");
+      if (createBtn) createBtn.onclick = openCreateAdModal;
+      return;
+    }
+    box.innerHTML = '<h3 style="margin:0 0 14px;font-size:18px;font-weight:800;">My P2P ads (' + rows.length + ')</h3><div style="display:grid;gap:12px;">' +
+      rows.map((ad, index) => '<article style="padding:16px;border:1px solid var(--line);border-radius:14px;background:var(--panel);display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;">' +
+        '<div><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;"><b>' + (ad.side === "sell" ? "Selling" : "Buying") + ' USDT</b><span class="service-soon" style="margin:0;border-color:' + (ad.is_active ? 'var(--buy)' : 'var(--line)') + ';color:' + (ad.is_active ? 'var(--buy)' : 'var(--muted)') + ';">' + (ad.is_active ? "Active" : "Inactive") + '</span></div>' +
+        '<div style="font-size:13px;color:var(--muted);margin-top:6px;">' + money(ad.price_per_unit, ad.currency) + ' / USDT · ' + Number(ad.available_amount).toLocaleString() + ' USDT · ' + money(ad.min_fiat_amount, ad.currency) + '–' + money(ad.max_fiat_amount, ad.currency) + '</div><div style="font-size:12px;color:var(--muted);margin-top:4px;">' + esc((ad.payment_methods || []).join(", ")) + '</div></div>' +
+        (ad.is_active ? '<button class="btn small" data-manage-ad="' + index + '">Manage ad</button>' : '') + '</article>'
+      ).join("") + '</div>';
+    box.querySelectorAll("[data-manage-ad]").forEach((button) => {
+      button.onclick = () => {
+        const ad = rows[Number(button.dataset.manageAd)];
+        if (ad) openManageAdModal(toOffer(ad, new Map()));
+      };
+    });
+  } catch (err) {
+    if (view === "ads") box.innerHTML = '<div class="empty"><strong>Could not load your ads.</strong>' + esc(err?.message || "Please try again.") + '</div>';
+  }
+}
+
 async function renderOrdersList() {
   const box = $("orders");
   if (!box) return;
@@ -876,26 +914,32 @@ async function renderOrdersList() {
 }
 
 function displayView(nextView) {
+  const serviceViews = {
+    "broker-deposit": { title: "Forex broker deposits", subtitle: "Broker funding is not available yet.", heading: "Deposit to a forex broker", description: "Etp2p does not currently have an active forex broker connection or deposit processor. You cannot submit funds from this page." },
+    "broker-withdrawal": { title: "Forex broker withdrawals", subtitle: "Broker withdrawals are not available yet.", heading: "Withdraw from a forex broker", description: "Etp2p does not currently have an active forex broker connection or withdrawal processor. No withdrawal request can be submitted here." },
+    "prop-firms": { title: "Prop-firm accounts", subtitle: "USDT purchases are not available yet.", heading: "Buy a prop-firm challenge with USDT", description: "Etp2p does not currently integrate with a prop-firm provider or process challenge-account payments. This page cannot charge you or place an order." },
+  };
+  const validViews = ["market", "orders", "ads", ...Object.keys(serviceViews)];
+  if (!validViews.includes(nextView)) nextView = "market";
+  if (!authUser && nextView !== "market") {
+    openSignIn();
+    return;
+  }
   view = nextView;
   if ($("market")) $("market").classList.toggle("hide", view !== "market");
   if ($("orders")) $("orders").classList.toggle("show", view !== "market");
-  
-  // Sync desktop navigation
-  document.querySelectorAll(".nav [data-view]").forEach((item) => item.classList.toggle("active", item.dataset.view === view));
-  
-  // Sync mobile bottom navigation
-  document.querySelectorAll(".m-nav-btn").forEach((btn) => {
-    btn.classList.toggle("active", btn.dataset.mview === view);
-  });
 
-  if ($("title")) $("title").textContent = view === "market" ? "Buy and sell crypto, your way." : view === "ads" ? "My P2P ads" : "Your P2P orders";
-  if ($("subtitle")) $("subtitle").textContent = view === "market" ? "Peer-to-peer USDT trading with escrow-tracked orders." : view === "ads" ? "Manage your persistent marketplace listings." : "Private order records for your account.";
-  
-  if (view === "market") {
-    render();
-  } else if (view === "orders") {
-    renderOrdersList();
-  }
+  document.querySelectorAll(".nav [data-view]").forEach((item) => item.classList.toggle("active", item.dataset.view === view));
+  document.querySelectorAll(".m-nav-btn").forEach((btn) => btn.classList.toggle("active", btn.dataset.mview === view));
+
+  const service = serviceViews[view];
+  if ($("title")) $("title").textContent = view === "market" ? "Buy and sell crypto, your way." : view === "ads" ? "My P2P ads" : view === "orders" ? "Your P2P orders" : service.title;
+  if ($("subtitle")) $("subtitle").textContent = view === "market" ? "Peer-to-peer USDT trading with escrow-tracked orders." : view === "ads" ? "Manage your persistent marketplace listings." : view === "orders" ? "Private order records for your account." : service.subtitle;
+
+  if (view === "market") render();
+  else if (view === "orders") renderOrdersList();
+  else if (view === "ads") renderMyAds();
+  else $("orders").innerHTML = '<div class="service-panel"><span class="service-soon">Coming soon</span><h2>' + esc(service.heading) + '</h2><p>' + esc(service.description) + '</p><div class="service-callout"><strong>Availability</strong><br><span style="color:var(--muted)">No provider, fees, exchange rates, or transaction capability are configured in this project yet.</span></div><button class="btn" type="button" disabled aria-disabled="true">Unavailable until integration is ready</button></div>';
 }
 
 function setView(nextView) {
